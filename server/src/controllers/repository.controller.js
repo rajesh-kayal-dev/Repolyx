@@ -85,8 +85,14 @@ export const importRepository = async (req, res, next) => {
 export const getRepositoryById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const repo = await prisma.repository.findUnique({
-      where: { id },
+
+    const repo = await prisma.repository.findFirst({
+      where: {
+        OR: [
+          { id },
+          { githubRepoId: id },
+        ],
+      },
       include: {
         files: true,
         events: { orderBy: { createdAt: "desc" }, take: 20 },

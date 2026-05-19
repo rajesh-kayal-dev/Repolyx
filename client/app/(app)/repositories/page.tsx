@@ -114,7 +114,12 @@ export default function RepositoryWorkspacePage() {
 
       if (repos.length > 0) {
         const storedId = localStorage.getItem('repolyx_active_repo_id');
-        const validId = storedId && repos.find((r: Repository) => r.id === storedId) ? storedId : repos[0].id;
+        const isKnownId = storedId && (
+          repos.find((r: Repository) => r.id === storedId) ||
+          repos.find((r: Repository) => r.githubRepoId === storedId)
+        );
+        const validId = isKnownId ? storedId! : repos[0].id;
+        localStorage.setItem('repolyx_active_repo_id', validId);
         setActiveRepoId(validId);
       }
     } catch (e: any) {
@@ -150,6 +155,12 @@ export default function RepositoryWorkspacePage() {
       }
     } catch (e: any) {
       console.error('Failed to load active repo:', e);
+      localStorage.removeItem('repolyx_active_repo_id');
+      if (importedRepos.length > 0) {
+        const fallbackId = importedRepos[0].id;
+        localStorage.setItem('repolyx_active_repo_id', fallbackId);
+        setActiveRepoId(fallbackId);
+      }
     }
   };
 
