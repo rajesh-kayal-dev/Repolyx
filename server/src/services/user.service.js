@@ -8,9 +8,10 @@ export const userService = {
   /**
    * Find a user by their GitHub ID, or create a new user if not found.
    * @param {Object} profile - GitHub profile object from Passport
+   * @param {string} accessToken - GitHub OAuth Access Token
    * @returns {Promise<Object>} The User record
    */
-  async findOrCreateGitHubUser(profile) {
+  async findOrCreateGitHubUser(profile, accessToken) {
     try {
       let user = await prisma.user.findUnique({
         where: {
@@ -25,9 +26,18 @@ export const userService = {
             username: profile.username || "",
             avatarUrl: profile.photos?.[0]?.value || null,
             email: profile.emails?.[0]?.value || null,
+            githubAccessToken: accessToken,
           },
         });
         logger.info(`Created new user record for GitHub ID: ${profile.id}`);
+      } else {
+        // Update the access token if it changed
+        if (accessToken && user.githubAccessToken !== accessToken) {
+          user = await prisma.user.update({
+            where: { id: user.id },
+            data: { githubAccessToken: accessToken },
+          });
+        }
       }
 
       return user;

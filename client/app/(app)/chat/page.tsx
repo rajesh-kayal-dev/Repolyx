@@ -2,8 +2,6 @@
 
 import { useState } from 'react';
 import { ChevronDown, FileText, GitBranch, MessageSquare, Zap } from 'lucide-react';
-import { repoChat } from '@/lib/mock-data';
-import type { ChatMessage } from '@/lib/types';
 
 const suggestedPrompts = [
     'Explain backend flow',
@@ -13,18 +11,8 @@ const suggestedPrompts = [
     'Explain database structure',
 ];
 
-const initialMessages: ChatMessage[] = [
-    ...repoChat,
-    {
-        role: 'ai',
-        content:
-            'I found the auth provider configured in `src/lib/auth.ts`. It uses JWT with an OAuth fallback. The protected routes are defined in `src/middleware.ts` and cover `/api/*` except the public health endpoint. Want me to walk through the flow?',
-        meta: 'repolyx/cli · main',
-    },
-];
-
 export default function ChatPage() {
-    const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+    const [messages, setMessages] = useState<any[]>([]);
     const [input, setInput] = useState('');
     const [contextOpen, setContextOpen] = useState(false);
 

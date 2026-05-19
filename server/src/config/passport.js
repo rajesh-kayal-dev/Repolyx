@@ -13,7 +13,7 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
-        const user = await userService.findOrCreateGitHubUser(profile);
+        const user = await userService.findOrCreateGitHubUser(profile, accessToken);
         return done(null, user);
       } catch (error) {
         logger.error(`Error inside GitHub OAuth strategy:`, error);

@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import session from "express-session";
 import passport from "./config/passport.js";
 import authRoutes from "./routes/auth.routes.js";
+import repositoryRoutes from "./routes/repository.routes.js";
 import { env } from "./config/env.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
@@ -48,6 +49,7 @@ app.use(passport.session());
 
 // 6. Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/repositories", repositoryRoutes);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
@@ -63,3 +65,4 @@ app.get("/api/health", (req, res) => {
 app.use(errorHandler);
 
 export default app;
+// Trigger nodemon restart
