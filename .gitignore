@@ -34,6 +34,7 @@ node_modules/
 /client/.env.development.local
 /client/.env.test.local
 /client/.env.production.local
+.mcp.json
 
 # IDE/OS files
 .DS_Store

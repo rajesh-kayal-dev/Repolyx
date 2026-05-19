@@ -7,10 +7,29 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  githubId  String   @unique
-  username  String
-  email     String?
-  avatarUrl String?
-  createdAt DateTime @default(now())
+  id                String       @id @default(cuid())
+  githubId          String       @unique
+  username          String
+  email             String?
+  avatarUrl         String?
+  githubAccessToken String?
+  repositories      Repository[]
+  createdAt         DateTime     @default(now())
+}
+
+model Repository {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  githubRepoId  String   @unique
+  name          String
+  fullName      String
+  visibility    String
+  defaultBranch String?
+  language      String?
+  description   String?
+  cloneUrl      String?
+  isIndexed     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }

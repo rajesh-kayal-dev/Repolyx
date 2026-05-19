@@ -10,7 +10,7 @@ const router = Router();
 router.get(
   "/github",
   passport.authenticate("github", {
-    scope: ["user:email"]
+    scope: ["user:email", "repo"]
   })
 );
 
