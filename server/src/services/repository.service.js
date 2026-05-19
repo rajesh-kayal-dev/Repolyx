@@ -50,22 +50,31 @@ export const repositoryService = {
         return existingRepo;
       }
 
-      const importedRepo = await prisma.repository.create({
-        data: {
-          userId,
-          githubRepoId: repoData.id,
-          name: repoData.name,
-          fullName: repoData.fullName,
-          visibility: repoData.visibility,
-          defaultBranch: repoData.defaultBranch,
-          language: repoData.language,
-          description: repoData.description,
-          cloneUrl: repoData.cloneUrl,
-          isIndexed: false,
-        },
-      });
+      try {
+        const importedRepo = await prisma.repository.create({
+          data: {
+            userId,
+            githubRepoId: repoData.id,
+            name: repoData.name,
+            fullName: repoData.fullName,
+            visibility: repoData.visibility,
+            defaultBranch: repoData.defaultBranch,
+            language: repoData.language,
+            description: repoData.description,
+            cloneUrl: repoData.cloneUrl,
+            isIndexed: false,
+          },
+        });
 
-      return importedRepo;
+        return importedRepo;
+      } catch (createError) {
+        // Handle unique constraint race condition: another request created the repo
+        if (createError && createError.code === 'P2002') {
+          const existing = await prisma.repository.findUnique({ where: { githubRepoId: repoData.id } });
+          if (existing) return existing;
+        }
+        throw createError;
+      }
     } catch (error) {
       logger.error(`Error importing repository ${repoData.name}:`, error);
       throw error;
