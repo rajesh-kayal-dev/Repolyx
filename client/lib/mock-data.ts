@@ -1,4 +1,4 @@
-import type { ActivityItem, ActivityEvent, ActivityFilterItem, ActivityInsight, ActivitySuggestion, ChatMessage, DocTemplate, PrReview, RepoSummary, DebugEntry, DocTypeItem, DocPreviewSection, EndpointDoc, ArchitectureInsight, AIAssistantMessage, AIAssistantEvent, RepoWorkspace, ExplorerSection, DependencyRisk, ApiRoute, AuthFlowStep } from './types';
+import type { ActivityItem, ActivityEvent, ActivityFilterItem, ActivityInsight, ActivitySuggestion, DocTypeItem, DocPreviewSection, EndpointDoc, ArchitectureInsight, AIAssistantMessage, AIAssistantEvent, ExplorerSection, DependencyRisk, ApiRoute, AuthFlowStep, ChatMessageOld, RepoSummary, PrReview, DebugEntry, DocTemplate, RepoWorkspace } from './types';
 
 export const repoSummaries: RepoSummary[] = [
   {
@@ -213,7 +213,7 @@ export const activitySuggestions: ActivitySuggestion[] = [
   }
 ];
 
-export const repoChat: ChatMessage[] = [
+export const repoChat: ChatMessageOld[] = [
   { role: 'ai', content: 'I found a broken auth flow in src/app/init.ts. The environment binding is missing before bootstrap.', meta: 'repolyx/api' },
   { role: 'user', content: 'Show me which files changed in the latest pull request and highlight tests gaps.' },
   { role: 'ai', content: 'PR #218 updates src/parser.ts, src/utils/validator.ts, and src/api/handler.ts. Coverage gaps exist for parser edge cases.' }
