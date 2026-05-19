@@ -1,0 +1,32 @@
+import { Router } from "express";
+import passport from "passport";
+import { getCurrentUser, githubCallback, logout } from "../controllers/auth.controller.js";
+import { isAuthenticated } from "../middleware/auth.js";
+import { env } from "../config/env.js";
+
+const router = Router();
+
+// Start GitHub OAuth process
+router.get(
+  "/github",
+  passport.authenticate("github", {
+    scope: ["user:email"]
+  })
+);
+
+// GitHub OAuth callback
+router.get(
+  "/github/callback",
+  passport.authenticate("github", {
+    failureRedirect: `${env.FRONTEND_URL}/login`
+  }),
+  githubCallback
+);
+
+// Get current authenticated user profile
+router.get("/me", getCurrentUser);
+
+// Logout user session
+router.post("/logout", isAuthenticated, logout);
+
+export default router;
