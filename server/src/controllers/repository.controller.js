@@ -111,6 +111,141 @@ export const getRepositoryById = async (req, res, next) => {
   }
 };
 
+export const importAndScanRepository = async (req, res, next) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+    if (!req.user.githubAccessToken) {
+      return res.status(401).json({ success: false, message: "GitHub token not found" });
+    }
+
+    const { repoData, branch } = req.body;
+
+    if (!repoData || !repoData.id) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid request body. Expected { repoData: { id, name, ... } }",
+      });
+    }
+
+    const savedRepo = await repositoryService.importRepository(req.user.id, repoData);
+
+    await eventService.createEvent(
+      savedRepo.id,
+      "imported",
+      `Repository "${savedRepo.name}" imported successfully`
+    );
+
+    await prisma.repository.update({
+      where: { id: savedRepo.id },
+      data: { scanStatus: "scanning" },
+    });
+
+    await eventService.createEvent(savedRepo.id, "indexed", "Started scanning repository...");
+
+    const [owner, repoName] = savedRepo.fullName.split("/");
+    const targetBranch = branch || savedRepo.defaultBranch || "HEAD";
+
+    const scanResult = await scannerService.scanRepository(
+      req.user.githubAccessToken,
+      owner,
+      repoName,
+      targetBranch
+    );
+
+    await prisma.repositoryFile.deleteMany({ where: { repositoryId: savedRepo.id } });
+
+    if (scanResult.files.length > 0) {
+      await prisma.repositoryFile.createMany({
+        data: scanResult.files.map((f) => ({
+          repositoryId: savedRepo.id,
+          path: f.path,
+          name: f.name,
+          extension: f.extension,
+          size: f.size,
+          type: f.type,
+          isImportant: f.isImportant || false,
+          modulePurpose: f.modulePurpose || null,
+        })),
+      });
+    }
+
+    await prisma.repository.update({
+      where: { id: savedRepo.id },
+      data: {
+        scanStatus: "completed",
+        isIndexed: true,
+        fileCount: scanResult.summary.totalFiles,
+        dependencyCount: scanResult.summary.totalDependencies,
+        branchCount: scanResult.summary.totalBranches,
+        techStack: scanResult.frameworks.join(", ") || savedRepo.language,
+      },
+    });
+
+    await eventService.createEvent(
+      savedRepo.id,
+      "indexed",
+      `Scanned ${scanResult.summary.totalFiles} files with ${scanResult.summary.totalDependencies} dependencies across ${scanResult.summary.totalBranches} branches`,
+      { totalFiles: scanResult.summary.totalFiles, totalDeps: scanResult.summary.totalDependencies }
+    );
+
+    const summaryData = {
+      name: savedRepo.name,
+      description: savedRepo.description,
+      language: savedRepo.language,
+      frameworks: scanResult.frameworks,
+      totalFiles: scanResult.summary.totalFiles,
+      totalDependencies: scanResult.summary.totalDependencies,
+      totalBranches: scanResult.summary.totalBranches,
+      totalAuthFlows: scanResult.authFlows.length,
+      totalAPIRoutes: scanResult.apiRoutes.length,
+      files: scanResult.files,
+    };
+
+    const summary = await aiService.generateSummary(summaryData);
+
+    await prisma.repository.update({
+      where: { id: savedRepo.id },
+      data: { aiSummary: summary },
+    });
+
+    await eventService.createEvent(savedRepo.id, "summary_generated", "AI repository summary generated");
+
+    const fullRepo = await prisma.repository.findUnique({
+      where: { id: savedRepo.id },
+      include: {
+        files: true,
+        events: { orderBy: { createdAt: "desc" }, take: 20 },
+        analyses: { orderBy: { createdAt: "desc" } },
+      },
+    });
+
+    res.json({
+      success: true,
+      repository: fullRepo,
+      scanResult: {
+        summary: scanResult.summary,
+        frameworks: scanResult.frameworks,
+        authFlows: scanResult.authFlows,
+        apiRoutes: scanResult.apiRoutes,
+        branches: scanResult.branches,
+      },
+    });
+  } catch (error) {
+    logger.error("Error in importAndScanRepository:", error);
+    try {
+      if (req.body?.repoData) {
+        const existing = await prisma.repository.findUnique({ where: { githubRepoId: req.body.repoData.id } });
+        if (existing) {
+          await prisma.repository.update({ where: { id: existing.id }, data: { scanStatus: "failed" } });
+        }
+      }
+    } catch {}
+    next(error);
+  }
+};
+
 export const scanRepository = async (req, res, next) => {
   try {
     const { id } = req.params;

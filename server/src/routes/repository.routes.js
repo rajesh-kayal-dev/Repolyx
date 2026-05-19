@@ -4,6 +4,7 @@ import {
   fetchAvailableRepositories,
   getImportedRepositories,
   importRepository,
+  importAndScanRepository,
   getRepositoryById,
   scanRepository,
   getFileTree,
@@ -22,6 +23,7 @@ router.use(isAuthenticated);
 router.get("/github", fetchAvailableRepositories);
 router.get("/imported", getImportedRepositories);
 router.post("/import", importRepository);
+router.post("/import-and-scan", importAndScanRepository);
 
 router.get("/:id", getRepositoryById);
 router.post("/:id/scan", scanRepository);

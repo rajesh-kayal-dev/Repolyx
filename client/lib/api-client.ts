@@ -34,6 +34,12 @@ export const api = {
         body: JSON.stringify({ repoData }),
       });
     },
+    importAndScan(repoData: any, branch?: string) {
+      return request<{ repository: any; scanResult: any }>("/api/repositories/import-and-scan", {
+        method: "POST",
+        body: JSON.stringify({ repoData, branch }),
+      });
+    },
     fetchGithub() {
       return request<{ repositories: any[] }>("/api/repositories/github");
     },
