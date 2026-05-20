@@ -13,6 +13,10 @@ const envSchema = z.object({
   SESSION_SECRET: z.string().min(8, "SESSION_SECRET must be at least 8 characters").default("temporary_session_secret_12345"),
   GITHUB_CLIENT_ID: z.string().min(1, "GITHUB_CLIENT_ID is required"),
   GITHUB_CLIENT_SECRET: z.string().min(1, "GITHUB_CLIENT_SECRET is required"),
+  FREEMODEL_API_KEY: z.string().min(1, "FREEMODEL_API_KEY is required"),
+  FREEMODEL_BASE_URL: z.string().url().default("https://cc.freemodel.dev"),
+  GEMINI_API_KEY: z.string().optional(),
+  OPENROUTER_API_KEY: z.string().optional(),
 });
 
 const parseEnv = () => {
