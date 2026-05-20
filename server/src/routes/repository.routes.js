@@ -8,6 +8,7 @@ import {
   getRepositoryById,
   scanRepository,
   getFileTree,
+  getBranches,
   getFileContent,
   generateSummary,
   runAnalysis,
@@ -28,6 +29,7 @@ router.post("/import-and-scan", importAndScanRepository);
 router.get("/:id", getRepositoryById);
 router.post("/:id/scan", scanRepository);
 router.get("/:id/tree", getFileTree);
+router.get("/:id/branches", getBranches);
 router.get("/:id/files/:fileId", getFileContent);
 router.post("/:id/summary", generateSummary);
 router.post("/:id/analyze", runAnalysis);

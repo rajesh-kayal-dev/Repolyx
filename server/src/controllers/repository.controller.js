@@ -358,6 +358,39 @@ export const getFileTree = async (req, res, next) => {
   }
 };
 
+export const getBranches = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const repo = await prisma.repository.findUnique({ where: { id } });
+
+    if (!repo) {
+      return res.status(404).json({ success: false, message: "Repository not found" });
+    }
+
+    if (!req.user || !req.user.githubAccessToken) {
+      return res.status(401).json({ success: false, message: "GitHub token not found" });
+    }
+
+    const [owner, repoName] = repo.fullName.split("/");
+    const branches = await scannerService.fetchBranches(
+      req.user.githubAccessToken,
+      owner,
+      repoName
+    );
+
+    const defaultBranch = repo.defaultBranch || "main";
+    const sorted = [
+      branches.find((b) => b.name === defaultBranch),
+      ...branches.filter((b) => b.name !== defaultBranch),
+    ].filter(Boolean);
+
+    res.json({ success: true, branches: sorted, defaultBranch });
+  } catch (error) {
+    logger.error("Error in getBranches:", error);
+    next(error);
+  }
+};
+
 export const getFileContent = async (req, res, next) => {
   try {
     const { id, fileId } = req.params;

@@ -2,7 +2,6 @@
 
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import rehypeRaw from 'rehype-raw';
 import type { Components } from 'react-markdown';
 
 interface MarkdownPreviewProps {
@@ -30,6 +29,16 @@ const components: Components = {
       {children}
     </h4>
   ),
+  h5: ({ children, ...props }) => (
+    <h5 className="text-sm font-medium text-neutral-300 mb-1.5 mt-3" {...props}>
+      {children}
+    </h5>
+  ),
+  h6: ({ children, ...props }) => (
+    <h6 className="text-xs font-medium text-neutral-400 mb-1.5 mt-3" {...props}>
+      {children}
+    </h6>
+  ),
   p: ({ children, ...props }) => (
     <p className="text-sm text-neutral-300 leading-relaxed mb-4 last:mb-0" {...props}>
       {children}
@@ -47,7 +56,7 @@ const components: Components = {
     </a>
   ),
   ul: ({ children, ...props }) => (
-    <ul className="list-disc list-inside text-sm text-neutral-300 space-y-1 mb-4" {...props}>
+    <ul className="text-sm text-neutral-300 space-y-1 mb-4 list-none" {...props}>
       {children}
     </ul>
   ),
@@ -56,11 +65,20 @@ const components: Components = {
       {children}
     </ol>
   ),
-  li: ({ children, ...props }) => (
-    <li className="text-sm text-neutral-300 leading-relaxed" {...props}>
-      {children}
-    </li>
-  ),
+  li: ({ children, className, ...props }) => {
+    if (className?.includes('task-list-item')) {
+      return (
+        <li className="flex items-start gap-2 text-sm text-neutral-300 leading-relaxed mb-1" {...props}>
+          {children}
+        </li>
+      );
+    }
+    return (
+      <li className="text-sm text-neutral-300 leading-relaxed list-disc ml-5 mb-1" style={{ display: 'list-item' }} {...props}>
+        {children}
+      </li>
+    );
+  },
   code: ({ children, className, ...props }) => {
     const isInline = !className;
     if (isInline) {
@@ -111,7 +129,7 @@ const components: Components = {
   ),
   hr: ({ ...props }) => <hr className="border-white/[0.06] my-6" {...props} />,
   img: ({ src, alt, ...props }) => (
-    <img src={src} alt={alt || ''} className="max-w-full rounded-lg my-4 border border-white/[0.06]" loading="lazy" {...props} />
+    <img src={src} alt={alt || ''} className="max-w-full rounded-lg my-4 border border-white/[0.06]" loading="lazy" referrerPolicy="no-referrer" {...props} />
   ),
   strong: ({ children, ...props }) => (
     <strong className="font-semibold text-white" {...props}>
@@ -124,7 +142,18 @@ const components: Components = {
     </em>
   ),
   input: ({ type, checked, ...props }) => (
-    <input type={type} checked={checked} readOnly className="mr-1.5 accent-accent" {...props} />
+    <input
+      type={type}
+      checked={checked}
+      readOnly
+      className="mt-1 h-3.5 w-3.5 shrink-0 rounded-sm border border-white/30 accent-accent"
+      {...props}
+    />
+  ),
+  del: ({ children, ...props }) => (
+    <del className="text-neutral-500 line-through" {...props}>
+      {children}
+    </del>
   ),
 };
 
@@ -133,7 +162,6 @@ export function MarkdownPreview({ content }: MarkdownPreviewProps) {
     <div className="markdown-body">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeRaw]}
         components={components}
       >
         {content}

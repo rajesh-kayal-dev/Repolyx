@@ -18,6 +18,7 @@ import { Sidebar } from './Sidebar';
 import { HelpModal } from '@/components/settings/HelpModal';
 import { SettingsModal } from '@/components/settings/SettingsModal';
 import { AnimatePresence } from 'framer-motion';
+import { ToastContainer } from '@/components/ui/ToastContainer';
 
 const HEADER_HEIGHT = 56;
 const SIDEBAR_WIDTH = 240;
@@ -243,6 +244,7 @@ export function PlatformShell({ children }: { children: ReactNode }) {
                 {isHelpOpen && <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />}
                 {isSettingsOpen && <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />}
             </AnimatePresence>
+            <ToastContainer />
         </div>
     );
 }
