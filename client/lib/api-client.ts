@@ -52,6 +52,9 @@ export const api = {
     getTree(id: string) {
       return request<{ tree: any[]; files: any[] }>(`/api/repositories/${id}/tree`);
     },
+    getBranches(id: string) {
+      return request<{ branches: any[]; defaultBranch: string }>(`/api/repositories/${id}/branches`);
+    },
     getFile(id: string, fileId: string, branch?: string) {
       const params = branch ? `?branch=${branch}` : "";
       return request<{ file: any }>(`/api/repositories/${id}/files/${fileId}${params}`);

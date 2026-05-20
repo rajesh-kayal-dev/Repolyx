@@ -72,3 +72,87 @@ body {
 .animate-pulse-dot {
   animation: pulse-dot 2s ease-in-out infinite;
 }
+
+.shiki-code-wrapper {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-x: auto;
+}
+
+.shiki-code-wrapper pre {
+  padding: 16px 0;
+  margin: 0;
+  background: transparent !important;
+}
+
+.shiki-code-wrapper code {
+  counter-reset: line;
+  display: block;
+  min-width: 100%;
+}
+
+.shiki-code-wrapper .line {
+  display: inline-block;
+  width: 100%;
+  padding: 0 16px 0 0;
+  line-height: 1.6;
+  min-height: 1.6em;
+}
+
+.shiki-code-wrapper .line::before {
+  content: counter(line);
+  counter-increment: line;
+  display: inline-block;
+  width: 3em;
+  margin-right: 1.5em;
+  text-align: right;
+  color: rgba(255, 255, 255, 0.15);
+  font-size: 12px;
+  user-select: none;
+  padding-right: 1.5em;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.shiki-code-wrapper .line:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.shiki-code-wrapper .line:hover::before {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.shiki-code-wrapper .line.highlighted {
+  background: rgba(56, 189, 248, 0.08);
+}
+
+.shiki-code-wrapper .shiki {
+  background: transparent !important;
+  margin: 0;
+  padding: 0;
+}
+
+.markdown-body ul {
+  list-style: disc;
+  padding-left: 1.5em;
+}
+
+.markdown-body ul ul {
+  list-style: circle;
+}
+
+.markdown-body ol {
+  list-style: decimal;
+  padding-left: 1.5em;
+}
+
+.markdown-body li.task-list-item {
+  list-style: none;
+  padding-left: 0;
+  margin-left: 0;
+}
+
+.markdown-body li.task-list-item input[type="checkbox"] {
+  margin-right: 8px;
+  margin-top: 3px;
+}

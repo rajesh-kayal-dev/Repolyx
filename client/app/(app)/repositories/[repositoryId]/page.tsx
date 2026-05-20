@@ -4,9 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
   Github,
-  ChevronDown,
   GitBranch,
-  Check,
   Loader2,
   Info,
   AlertTriangle,
@@ -23,6 +21,9 @@ import {
 import { api } from '@/lib/api-client';
 import { FileTree } from '@/components/repository/FileTree';
 import { CodeViewer } from '@/components/repository/CodeViewer';
+import { BranchSelector } from '@/components/repository/BranchSelector';
+import { CodeButton } from '@/components/repository/CodeButton';
+import { FileFinder } from '@/components/repository/FileFinder';
 import type { Repository, RepositoryFile, RepositoryEvent, TreeNode, ChatMessage } from '@/lib/types';
 
 export default function RepositoryWorkspacePage() {
@@ -45,6 +46,8 @@ export default function RepositoryWorkspacePage() {
 
   const [selectedBranch, setSelectedBranch] = useState('main');
   const [isBranchSelectorOpen, setIsBranchSelectorOpen] = useState(false);
+  const [branches, setBranches] = useState<any[]>([]);
+  const [defaultBranch, setDefaultBranch] = useState('main');
   const branchSelectorRef = useRef<HTMLDivElement>(null);
 
   const [summary, setSummary] = useState<string | null>(null);
@@ -72,14 +75,19 @@ export default function RepositoryWorkspacePage() {
       const repoData = res.repository;
       setRepo(repoData);
       setSummary(repoData.aiSummary);
-      setSelectedBranch(repoData.defaultBranch || 'main');
+      const defaultB = repoData.defaultBranch || 'main';
+      setSelectedBranch(defaultB);
+      setDefaultBranch(defaultB);
       setEvents(repoData.events || []);
       setAnalyses(repoData.analyses || []);
       setSelectedFile(null);
       setSelectedFileContent(null);
       setSelectedFileExplanation(null);
       setAiChatResponses([]);
-      if (repoData.isIndexed) loadFileTree(id);
+      if (repoData.isIndexed) {
+        loadFileTree(id);
+        loadBranches(id);
+      }
     } catch (e: any) {
       setError(e.message || 'Failed to load repository');
     } finally {
@@ -94,6 +102,36 @@ export default function RepositoryWorkspacePage() {
       setFiles(res.files || []);
     } catch (e: any) {
       console.error('Failed to load file tree:', e);
+    }
+  };
+
+  const loadBranches = async (id: string) => {
+    try {
+      const res = await api.repositories.getBranches(id);
+      setBranches(res.branches || []);
+      if (res.defaultBranch) setDefaultBranch(res.defaultBranch);
+    } catch {
+      setBranches([]);
+    }
+  };
+
+  const handleSwitchBranch = async (branch: string) => {
+    if (!repo || branch === selectedBranch) return;
+    setSelectedBranch(branch);
+    setSelectedFile(null);
+    setSelectedFileContent(null);
+    setSelectedFileExplanation(null);
+    setIsLoadingFile(false);
+    setIsScanning(true);
+    try {
+      await api.repositories.scan(repo.id, branch);
+      await loadFileTree(repo.id);
+      const res = await api.repositories.get(repo.id);
+      if (res.repository) setRepo(res.repository);
+    } catch (e: any) {
+      console.error('Branch switch failed:', e);
+    } finally {
+      setIsScanning(false);
     }
   };
 
@@ -249,32 +287,15 @@ export default function RepositoryWorkspacePage() {
             <span className="text-sm font-medium text-white">{repo.name}</span>
           </div>
           <span className="text-neutral-700 text-xs">/</span>
-          <div className="relative" ref={branchSelectorRef}>
-            <button
-              onClick={() => setIsBranchSelectorOpen(!isBranchSelectorOpen)}
-              className="flex items-center gap-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02] px-2.5 py-1.5 text-xs text-neutral-400 hover:bg-white/[0.04] hover:text-neutral-200 transition-colors"
-            >
-              <GitBranch size={12} className="text-neutral-500" />
-              <span>{selectedBranch}</span>
-              <ChevronDown size={11} />
-            </button>
-            {isBranchSelectorOpen && (
-              <div className="absolute left-0 mt-1.5 w-36 rounded-lg border border-white/[0.08] bg-[#090d14] shadow-lg z-50 py-1">
-                <div className="px-3 py-1 text-[10px] font-semibold text-neutral-500 uppercase tracking-wider">Branches</div>
-                {[repo.defaultBranch || 'main'].map((b) => (
-                  <button
-                    key={b}
-                    onClick={() => { setSelectedBranch(b); setIsBranchSelectorOpen(false); }}
-                    className={`flex w-full items-center justify-between px-3 py-1.5 text-xs text-left ${
-                      b === selectedBranch ? 'text-accent bg-accent/5 font-semibold' : 'text-neutral-400 hover:bg-white/[0.03] hover:text-neutral-200'
-                    }`}
-                  >
-                    <span>{b}</span>
-                    {b === selectedBranch && <Check size={10} />}
-                  </button>
-                ))}
-              </div>
-            )}
+          <div ref={branchSelectorRef}>
+            <BranchSelector
+              branches={branches}
+              selectedBranch={selectedBranch}
+              defaultBranch={defaultBranch}
+              onSelectBranch={handleSwitchBranch}
+              isOpen={isBranchSelectorOpen}
+              onToggle={() => setIsBranchSelectorOpen(!isBranchSelectorOpen)}
+            />
           </div>
           <div className="flex items-center gap-1.5 pl-1">
             <span className={`h-1.5 w-1.5 rounded-full ${repo.isIndexed ? 'bg-emerald-400' : 'bg-amber-400'} animate-pulse-dot`} />
@@ -284,15 +305,25 @@ export default function RepositoryWorkspacePage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <FileFinder
+            tree={fileTree}
+            files={files}
+            onFileSelect={handleFileClick}
+          />
+          <CodeButton
+            cloneUrl={repo.cloneUrl}
+            fullName={repo.fullName}
+            selectedBranch={selectedBranch}
+            fileCount={repo.fileCount}
+            dependencyCount={repo.dependencyCount}
+            techStack={repo.techStack}
+            repoDescription={repo.description}
+            branchCount={repo.branchCount}
+          />
           <button onClick={handleScan} disabled={isScanning}
             className="rounded-lg border border-white/[0.06] px-3 py-1.5 text-xs text-neutral-400 hover:bg-white/[0.03] hover:text-neutral-200 transition-colors disabled:opacity-50"
           >
-            {isScanning ? 'Scanning...' : 'Run scan'}
-          </button>
-          <button onClick={() => document.getElementById('ai-chat-input')?.focus()}
-            className="rounded-lg border border-white/[0.06] px-3 py-1.5 text-xs text-neutral-400 hover:bg-white/[0.03] hover:text-neutral-200 transition-colors"
-          >
-            Ask AI
+            {isScanning ? 'Scanning...' : 'Scan'}
           </button>
           <button onClick={handleGenerateSummary} disabled={isGeneratingSummary}
             className="rounded-lg bg-accent/10 border border-accent/20 px-3 py-1.5 text-xs font-medium text-accent hover:bg-accent/15 transition-colors disabled:opacity-50"
