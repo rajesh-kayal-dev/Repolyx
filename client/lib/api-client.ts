@@ -83,4 +83,34 @@ export const api = {
       });
     },
   },
+  ai: {
+    sessions: {
+      list(repositoryId: string) {
+        return request<{ sessions: any[] }>(`/api/ai/sessions/repository/${repositoryId}`);
+      },
+      get(id: string) {
+        return request<{ session: any; messages: any[] }>(`/api/ai/sessions/${id}`);
+      },
+      create(repositoryId: string, title?: string) {
+        return request<{ session: any }>("/api/ai/sessions", {
+          method: "POST",
+          body: JSON.stringify({ repositoryId, title }),
+        });
+      },
+      delete(id: string) {
+        return request<{ success: boolean; message: string }>(`/api/ai/sessions/${id}`, {
+          method: "DELETE",
+        });
+      },
+    },
+    chat(sessionId: string, message: string, activeFile?: string, provider?: string, model?: string) {
+      return request<{ userMessage: any; aiMessage: any; title: string; analysis?: any }>("/api/ai/chat", {
+        method: "POST",
+        body: JSON.stringify({ sessionId, message, activeFile, provider, model }),
+      });
+    },
+    getPrompts(repositoryId: string) {
+      return request<{ prompts: string[] }>(`/api/ai/prompts/${repositoryId}`);
+    },
+  },
 };

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import {
   Github,
   GitBranch,
@@ -29,7 +29,9 @@ import type { Repository, RepositoryFile, RepositoryEvent, TreeNode, ChatMessage
 export default function RepositoryWorkspacePage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const repositoryId = params?.repositoryId as string;
+  const pendingFileId = searchParams?.get('fileId') || null;
 
   const [repo, setRepo] = useState<Repository | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -225,6 +227,14 @@ export default function RepositoryWorkspacePage() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (!pendingFileId || files.length === 0) return;
+    const targetFile = files.find(f => f.id === pendingFileId);
+    if (targetFile) {
+      handleFileClick(targetFile);
+    }
+  }, [pendingFileId, files]);
 
   if (isLoading) {
     return (
