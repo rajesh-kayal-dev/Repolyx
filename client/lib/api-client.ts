@@ -83,6 +83,20 @@ export const api = {
       });
     },
   },
+  dashboard: {
+    stats() {
+      return request<{ stats: any; recentActivity: any[] }>("/api/dashboard/stats");
+    },
+    sessions() {
+      return request<{ sessions: any[] }>("/api/dashboard/sessions");
+    },
+    repos() {
+      return request<{ repositories: any[] }>("/api/dashboard/repos");
+    },
+    actions() {
+      return request<{ actions: any[] }>("/api/dashboard/actions");
+    },
+  },
   ai: {
     sessions: {
       list(repositoryId: string) {
