@@ -7,21 +7,22 @@ datasource db {
 }
 
 model User {
-  id                String       @id @default(cuid())
-  githubId          String       @unique
+  id                String        @id @default(cuid())
+  githubId          String        @unique
   username          String
   email             String?
   avatarUrl         String?
   githubAccessToken String?
   repositories      Repository[]
-  createdAt         DateTime     @default(now())
+  chatSessions      ChatSession[]
+  createdAt         DateTime      @default(now())
 }
 
 model Repository {
-  id             String              @id @default(cuid())
+  id             String               @id @default(cuid())
   userId         String
-  user           User                @relation(fields: [userId], references: [id])
-  githubRepoId   String              @unique
+  user           User                 @relation(fields: [userId], references: [id])
+  githubRepoId   String               @unique
   name           String
   fullName       String
   visibility     String
@@ -29,18 +30,20 @@ model Repository {
   language       String?
   description    String?
   cloneUrl       String?
-  isIndexed      Boolean             @default(false)
-  scanStatus     String              @default("pending")
+  isIndexed      Boolean              @default(false)
+  scanStatus     String               @default("pending")
   aiSummary      String?
   techStack      String?
-  dependencyCount Int                @default(0)
-  fileCount      Int                 @default(0)
-  branchCount    Int                 @default(0)
+  dependencyCount Int                 @default(0)
+  fileCount      Int                  @default(0)
+  branchCount    Int                  @default(0)
   files          RepositoryFile[]
   events         RepositoryEvent[]
   analyses       RepositoryAnalysis[]
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
+  chatSessions   ChatSession[]
+  aiContext      AIContext?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
 }
 
 model RepositoryFile {
@@ -79,4 +82,38 @@ model RepositoryAnalysis {
   summary      String?
   data         Json?
   createdAt    DateTime   @default(now())
+}
+
+model ChatSession {
+  id           String        @id @default(cuid())
+  repositoryId String
+  repository   Repository    @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title        String
+  messages     ChatMessage[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model ChatMessage {
+  id        String      @id @default(cuid())
+  sessionId String
+  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role      String // 'user' | 'assistant'
+  content   String
+  provider  String? // 'freemodel' | 'gemini' | 'openrouter'
+  model     String? // e.g. 'claude-sonnet-4-6'
+  createdAt DateTime    @default(now())
+}
+
+model AIContext {
+  id                String     @id @default(cuid())
+  repositoryId      String     @unique
+  repository        Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  activeFile        String?
+  relatedFiles      Json? // Array of paths or objects
+  repositorySummary String?
+  metadata          Json? // extra metadata
+  createdAt         DateTime   @default(now())
 }

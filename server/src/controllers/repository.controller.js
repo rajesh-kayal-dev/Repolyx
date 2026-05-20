@@ -1,7 +1,11 @@
 import { repositoryService } from "../services/repository.service.js";
 import { scannerService } from "../services/scanner.service.js";
 import { analysisService } from "../services/analysis.service.js";
-import { aiService } from "../services/ai.service.js";
+import { aiService as legacyAiService } from "../services/ai.service.js";
+import { aiService } from "../modules/ai/services/ai.service.js";
+import { contextEngine } from "../modules/ai/context/context.engine.js";
+import { promptTemplates } from "../modules/ai/prompts/templates.js";
+import { generateCompletion } from "../modules/ai/providers/index.js";
 import { eventService } from "../services/event.service.js";
 import prisma from "../database/prisma.js";
 import logger from "../utils/logger.js";
@@ -203,7 +207,7 @@ export const importAndScanRepository = async (req, res, next) => {
       files: scanResult.files,
     };
 
-    const summary = await aiService.generateSummary(summaryData);
+    const summary = await legacyAiService.generateSummary(summaryData);
 
     await prisma.repository.update({
       where: { id: savedRepo.id },
@@ -421,7 +425,7 @@ export const getFileContent = async (req, res, next) => {
       branch
     );
 
-    const explanation = await aiService.generateFileExplanation(file);
+    const explanation = await legacyAiService.generateFileExplanation(file);
 
     res.json({ success: true, file: { ...file, content, explanation } });
   } catch (error) {
@@ -473,7 +477,7 @@ export const generateSummary = async (req, res, next) => {
       files: repo.files,
     };
 
-    const summary = await aiService.generateSummary(summaryData);
+    const summary = await legacyAiService.generateSummary(summaryData);
 
     await prisma.repository.update({
       where: { id },
@@ -595,22 +599,41 @@ export const queryRepository = async (req, res, next) => {
       return res.status(404).json({ success: false, message: "Repository not found" });
     }
 
-    const context = {
-      repository: repo.name,
-      selectedFile: selectedFile || null,
+    if (!req.user?.githubAccessToken) {
+      return res.status(401).json({ success: false, message: "GitHub token not found" });
+    }
+
+    const context = await contextEngine.buildContext(id, req.user.githubAccessToken, {
+      activeFilePath: selectedFile || null,
       selectedBranch: selectedBranch || repo.defaultBranch || "main",
-      files: repo.files.map((f) => ({
-        path: f.path,
-        name: f.name,
-        extension: f.extension,
-        modulePurpose: f.modulePurpose,
-        isImportant: f.isImportant,
-      })),
-    };
+      userMessage: query,
+    });
 
-    const answer = await aiService.answerQuery(query, context);
+    const formattedContext = promptTemplates.formatContext(context);
+    const systemInstruction = `${promptTemplates.systemPrompt}\n\n${formattedContext}`;
 
-    res.json({ success: true, answer, context });
+    const apiMessages = [
+      { role: "user", content: query }
+    ];
+
+    const aiResult = await generateCompletion(apiMessages, {
+      heavy: true,
+      system: systemInstruction,
+    });
+
+    const referencedFiles = aiService.extractReferencedFiles ? 
+      aiService.extractReferencedFiles(aiResult.text, context) : [];
+
+    res.json({ 
+      success: true, 
+      answer: aiResult.text, 
+      context: {
+        ...context.analysis,
+        referencedFiles,
+        provider: aiResult.provider,
+        model: aiResult.model,
+      }
+    });
   } catch (error) {
     logger.error("Error in queryRepository:", error);
     next(error);
