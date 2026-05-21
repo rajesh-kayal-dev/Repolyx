@@ -96,6 +96,18 @@ export const api = {
     actions() {
       return request<{ actions: any[] }>("/api/dashboard/actions");
     },
+    githubProfile() {
+      return request<{ profile: any }>("/api/dashboard/github-profile");
+    },
+    contributions() {
+      return request<{ contributions: any }>("/api/dashboard/contributions");
+    },
+    achievements() {
+      return request<{ achievements: any[] }>("/api/dashboard/achievements");
+    },
+    readme() {
+      return request<{ readme: string | null; htmlUrl: string | null }>("/api/dashboard/readme");
+    },
   },
   ai: {
     sessions: {

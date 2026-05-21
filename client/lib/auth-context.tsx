@@ -96,7 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       router.push('/');
     } else if (isAuthRoute && user) {
       // User is already logged in, trying to access landing page -> redirect to dashboard
-      router.push('/dashboard');
+      router.push('/overview');
     }
   }, [user, loading, pathname, router]);
 

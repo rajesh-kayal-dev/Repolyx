@@ -17,6 +17,7 @@ const envSchema = z.object({
   FREEMODEL_BASE_URL: z.string().url().default("https://cc.freemodel.dev"),
   GEMINI_API_KEY: z.string().optional(),
   OPENROUTER_API_KEY: z.string().optional(),
+  APIFY_API_KEY: z.string().min(1, "APIFY_API_KEY is required"),
 });
 
 const parseEnv = () => {

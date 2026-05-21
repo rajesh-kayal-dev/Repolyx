@@ -48,7 +48,7 @@ feature/pr-review
 feature/docs-generator
 feature/activity-system
 feature/settings
-feature/dashboard-ui
+feature/overview
 ```
 
 ---

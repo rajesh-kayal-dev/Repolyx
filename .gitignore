@@ -48,6 +48,9 @@ node_modules/
 
 # Playwright test artifacts
 .playwright-mcp/
+/client/playwright-report/
+/client/test-results/
+/client/tsconfig.tsbuildinfo
 
 # Windows reserved device names
 NUL

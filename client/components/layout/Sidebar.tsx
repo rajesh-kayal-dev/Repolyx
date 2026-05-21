@@ -14,6 +14,7 @@ import {
     Settings2,
     TerminalSquare,
     Zap,
+    User,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 
@@ -24,7 +25,7 @@ interface SidebarProps {
 
 
 const navItems = [
-    { href: '/dashboard', label: 'Dashboard', icon: Zap },
+    { href: '/overview', label: 'Overview', icon: User },
     { href: '/repositories', label: 'Repositories', icon: GitBranch },
     { href: '/chat', label: 'AI Chat', icon: MessageSquare },
     { href: '/reviews', label: 'Pull Requests', icon: FileText },
