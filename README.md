@@ -1,8 +1,8 @@
 <div align="center">
   <img src="https://raw.githubusercontent.com/rajesh-kayal-dev/Repolyx/main/client/public/Repolyx.png" alt="Repolyx Logo" width="120" />
-  <h1 align="center">Repolyx</h1>
+  <h1 align="center">Repolyx ??</h1>
   <p align="center">
-    <strong>AI-Native Engineering Workspace & Developer Intelligence Platform</strong>
+    <em>AI-Native Engineering Workspace & Developer Intelligence Platform</em>
   </p>
 
   <p align="center">
@@ -24,6 +24,12 @@
     <a href="https://github.com/rajesh-kayal-dev/Repolyx/commits/main">
       <img src="https://img.shields.io/github/last-commit/rajesh-kayal-dev/Repolyx?style=for-the-badge&logo=git&color=orange" alt="Last Commit" />
     </a>
+    <a href="https://github.com/rajesh-kayal-dev/Repolyx">
+      <img src="https://img.shields.io/github/repo-size/rajesh-kayal-dev/Repolyx?style=for-the-badge&logo=files&color=brightgreen" alt="Repo Size" />
+    </a>
+    <a href="https://github.com/rajesh-kayal-dev/Repolyx/graphs/contributors">
+      <img src="https://img.shields.io/github/contributors/rajesh-kayal-dev/Repolyx?style=for-the-badge&logo=people&color=ff69b4" alt="Contributors" />
+    </a>
   </p>
 
   <p align="center">
@@ -31,84 +37,88 @@
       <img src="https://img.shields.io/badge/View_on_GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="View on GitHub" />
     </a>
     <a href="https://github.com/rajesh-kayal-dev/Repolyx/issues/new">
-      <img src="https://img.shields.io/badge/Report_Bug-FF6B6B?style=for-the-badge&logo=github&logoColor=white" alt="Report Bug" />
+      <img src="https://img.shields.io/badge/Report_Bug-FF6B6B?style=for-the-badge&logo=bugatti&logoColor=white" alt="Report Bug" />
     </a>
     <a href="https://github.com/rajesh-kayal-dev/Repolyx/issues/new">
-      <img src="https://img.shields.io/badge/Request_Feature-6BCB77?style=for-the-badge&logo=github&logoColor=white" alt="Request Feature" />
+      <img src="https://img.shields.io/badge/Request_Feature-6BCB77?style=for-the-badge&logo=starship&logoColor=white" alt="Request Feature" />
     </a>
   </p>
 </div>
 
 ---
 
-## 📖 Table of Contents
+## ?? Table of Contents
 
 - [About](#-about)
 - [Features](#-features)
 - [Tech Stack](#-tech-stack)
-- [Screenshots & Visuals](#-screenshots--visuals)
 - [Repository Architecture](#-repository-architecture)
-- [Folder Structure](#-folder-structure)
 - [Getting Started](#-getting-started)
-- [Git Engineering Standards](#-git-engineering-standards)
-- [Roadmap](#-roadmap)
+- [Running Locally](#-running-locally)
 - [Contributing](#-contributing)
 - [License](#-license)
+- [GitHub Stats](#-github-stats)
+- [Achievements](#-achievements)
 
 ---
 
-## 💡 About
+## ?? About
 
-Repolyx is a modern, full-stack monorepo designed as an industry-standard platform for repository analysis, workflow metrics, AI-driven chat, and security logs. It combines a high-performance **Next.js (TypeScript)** client with a modular, highly scalable **Express (ESM JavaScript)** server integrated with **Prisma ORM** and **Neon PostgreSQL**.
-
-Designed with the developer in mind, it provides immediate repository insights, contribution analysis, and code summary generation in a layout inspired by modern developer products like GitHub, Linear, and Vercel.
+Repolyx is a modern, full-stack monorepo designed as an industry-standard platform for repository analysis, workflow metrics, AI-driven chat, and security logs. It combines a **Next.js (TypeScript)** client with a modular, highly scalable **Express (ESM JavaScript)** server integrated with **Prisma** and **Neon PostgreSQL**.
 
 ---
 
-## ✨ Features
+## ? Features
 
 | Feature | Description |
-|:---|:---|
-| 🤖 **AI Chat** | Intelligent repository-aware assistant for code insights and summaries. |
-| 📊 **Contribution Graph** | Live display of real GitHub contributions, streaks, and repository health. |
-| 🔍 **Repo Analysis** | Deep codebase insights, file scanning, and dependency graphing. |
-| 🔒 **Security Logs** | Audit trails, active sessions monitoring, and session status tracking. |
-| 🔑 **GitHub Auth** | Secure OAuth authentication using Passport.js. |
-| 🎨 **Modern Dark UI** | Clean, minimalist visual design utilizing React, Tailwind CSS, and Framer Motion. |
+|---------|-------------|
+| ?? **AI Chat** | Intelligent repository-aware assistant for code insights |
+| ?? **Workflow Metrics** | Track CI/CD pipelines, PR cycles, deployment frequency |
+| ?? **Repo Analysis** | Deep codebase insights, dependency graphs, health checks |
+| ??? **Security Logs** | Audit trails, vulnerability scanning, compliance reports |
+| ?? **GitHub Auth** | Seamless OAuth integration with Passport.js |
+| ?? **Modern UI** | Dark-themed, animated interface with Framer Motion |
 
 ---
 
-## 🛠️ Tech Stack
+## ??? Tech Stack
+
+<div align="center">
 
 ### Frontend
-- **Framework**: Next.js 14 (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **Animations**: Framer Motion
-- **Icons**: Lucide React
-- **Markdown Rendering**: React Markdown, Remark GFM, Rehype Raw
+
+![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
+![Framer Motion](https://img.shields.io/badge/Framer_Motion-0055FF?style=for-the-badge&logo=framer&logoColor=white)
+![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black)
 
 ### Backend
-- **Server**: Node.js & Express 5 (ESM)
-- **Database**: Neon Serverless PostgreSQL
-- **ORM**: Prisma ORM
-- **Authentication**: Passport.js (GitHub OAuth strategy) & Express Sessions
-- **Validation**: Zod (Runtime environment and schema validation)
-- **Scraping**: Apify Client (GitHub achievements scraping)
+
+![Node.js](https://img.shields.io/badge/Node.js-5FA04E?style=for-the-badge&logo=nodedotjs&logoColor=white)
+![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
+![Neon](https://img.shields.io/badge/Neon-00E599?style=for-the-badge&logo=neon&logoColor=black)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+
+### Tools & Auth
+
+![Zod](https://img.shields.io/badge/Zod-3068B7?style=for-the-badge&logo=zod&logoColor=white)
+![Passport](https://img.shields.io/badge/Passport-34E27A?style=for-the-badge&logo=passport&logoColor=black)
+![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
+![Octokit](https://img.shields.io/badge/Octokit-000000?style=for-the-badge&logo=github&logoColor=white)
+![ESLint](https://img.shields.io/badge/ESLint-4B32C3?style=for-the-badge&logo=eslint&logoColor=white)
+
+</div>
 
 ---
 
-## 📸 Screenshots & Visuals
+## ??? Repository Architecture
 
-Here is a preview of the main overview page of Repolyx, showcasing the GitHub integration, README renderer, achievements, and repository health metrics:
+This project is organized into two primary workspaces:
 
-![Repolyx Overview Dashboard](./docs/assets/readme-screenshot.png)
-
----
-
-## 🏗️ Repository Architecture
-
-The codebase separates the presentation layer from the database and integration services:
+- **`/client`**: A modern Next.js 14 frontend utilizing React 18, Tailwind CSS, Framer Motion, and TypeScript.
+- **`/server`**: A robust and structured Express 5 backend server utilising ESM, Zod validation, Passport-based GitHub authentication, and Prisma ORM connecting to a serverless Neon PostgreSQL database.
 
 ```mermaid
 graph TD
@@ -140,55 +150,18 @@ graph TD
 
 ---
 
-## 📂 Folder Structure
-
-```txt
-Repolyx/
- ├── .github/
- │    ├── workflows/
- │    │    └── ci.yml             # Automated CI Build & Test Pipeline
- │    └── ISSUE_TEMPLATE/
- │         ├── bug_report.md      # Bug template mapped to needs-triage
- │         └── feature_request.md # Feature template mapped to needs-triage
- ├── client/
- │    ├── app/                   # Next.js pages and routes
- │    ├── components/            # Reusable UI widgets
- │    │    ├── dashboard/        # Dashboard metrics and profile widgets
- │    │    └── ui/               # Primary components (buttons, inputs)
- │    ├── lib/                   # API utilities & providers
- │    ├── public/                # Static brand assets
- │    └── tests/                 # Playwright integration tests
- ├── server/
- │    ├── src/
- │    │    ├── config/           # App settings and environments
- │    │    ├── controllers/      # Route logic handlers
- │    │    ├── routes/           # Express endpoint router definitions
- │    │    ├── middleware/       # Express session and OAuth middlewares
- │    │    ├── services/         # Scrapers and external API services
- │    │    ├── database/         # Prisma client instance configuration
- │    │    └── server.js         # Entry point for backend Express app
- │    ├── prisma/                # Database schema, adapters, and migrations
- │    └── package.json
- ├── docs/                       # Project documentation
- │    ├── assets/                # Screenshots and visuals
- │    └── design/                # PDF specifications and design guidelines
- ├── CLAUDE.md                   # Agent guidelines & commands
- ├── CONTEXT.md                  # Project domain lexicon and maps
- └── README.md                   # This documentation file
-```
-
----
-
-## 🚀 Getting Started
+## ?? Getting Started
 
 ### Prerequisites
-- Node.js `v20.x` or later
-- Neon PostgreSQL connection string
+
+- Node.js `v20.x` or later (Node `v24.x` recommended)
+- PostgreSQL Database (Neon instance recommended)
 - GitHub OAuth application credentials
 
 ### Step-by-Step Setup
 
 #### 1. Clone the Repository
+
 ```bash
 git clone https://github.com/rajesh-kayal-dev/Repolyx.git
 cd Repolyx
@@ -197,6 +170,7 @@ cd Repolyx
 #### 2. Configure Environment Variables
 
 **For the Server (`/server/.env`):**
+
 ```env
 PORT=5000
 FRONTEND_URL=http://localhost:3000
@@ -208,83 +182,86 @@ GITHUB_CLIENT_SECRET="your-github-oauth-client-secret"
 ```
 
 **For the Client (`/client/.env.local`):**
+
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:5000
 ```
 
-#### 3. Install Dependencies & Generate Database Client
+#### 3. Install Dependencies & Generate Client
 
 ```bash
-# Server setup
 cd server
 npm install
 npx prisma generate
 
-# Client setup
 cd ../client
 npm install
 ```
 
-#### 4. Run Locally
+---
 
-**Start the Server:**
+## ?? Running Locally
+
+### Start Backend Server
+
+From the `/server` directory:
+
 ```bash
-cd server
 npm run dev
 ```
 
-**Start the Client:**
+The server will start on port `5000` (or `PORT` specified in `.env`).
+
+### Start Frontend Client
+
+From the `/client` directory:
+
 ```bash
-cd client
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view the application.
+The Next.js client will start on [http://localhost:3000](http://localhost:3000).
 
 ---
 
-## 🛠️ Git Engineering Standards
+## ?? Contributing
 
-Repolyx is built with rigorous, production-grade git workflows.
-
-### 1. Branch Naming Conventions
-Always create a branch for new modifications. Use prefixes to categorise changes:
-- `feature/<name>`: For implementing new components or flows (e.g., `feature/github-auth`)
-- `fix/<name>`: For bug fixes and regression resolves (e.g., `fix/session-middleware`)
-- `refactor/<name>`: For codebase design improvements without feature changes
-- `docs/<name>`: For adding or updating documentation
-
-### 2. Commit Message Rules
-All commits must follow structured conventional formats:
-* `feat: ...` for new features (e.g., `feat: add github oauth integration`)
-* `fix: ...` for bug fixes (e.g., `fix: resolve db schema sync mismatch`)
-* `refactor: ...` for architectural updates
-* `ui: ...` for visual modifications
-* `docs: ...` for documentation updates
-
-*Never push directly to the `main` branch. Ensure code is reviewed and Playwright tests pass before merging.*
+We welcome contributions! Please check out [CONTRIBUTING.md](CONTRIBUTING.md) for details on code standards, pull requests, and commit guidelines.
 
 ---
 
-## 🗺️ Roadmap
+## ?? License
 
-- [x] Initial full-stack dashboard setup
-- [x] GitHub OAuth integration
-- [x] Overview page implementation (GitHub profile, contribution heatmap, achievements, repository health)
-- [x] Automated CI validation pipeline via GitHub Actions
-- [x] Comprehensive Playwright integration test suite
-- [ ] Multi-repository sync & comparison dashboard
-- [ ] AI-driven auto PR review suggestions
-- [ ] Dependency vulnerabilities auditing and alerting
+This project is licensed under the ISC License.
 
 ---
 
-## 🤝 Contributing
+## ?? GitHub Stats
 
-We welcome contributions! Please review [CONTRIBUTING.md](CONTRIBUTING.md) for details on code quality standards, issue creation, and pull request procedures.
+<div align="center">
+
+### Contribution Activity
+
+![GitHub Stats](https://github-readme-stats.vercel.app/api?username=rajesh-kayal-dev&show_icons=true&theme=github_dark&hide_border=true&count_private=true&include_all_commits=true)
+
+![Top Languages](https://github-readme-stats.vercel.app/api/top-langs/?username=rajesh-kayal-dev&layout=compact&theme=github_dark&hide_border=true&langs_count=8)
+
+![GitHub Streak](https://github-readme-streak-stats.herokuapp.com/?user=rajesh-kayal-dev&theme=github-dark&hide_border=true)
+
+### Contribution Graph
+
+![Contribution Graph](https://github-readme-activity-graph.vercel.app/graph?username=rajesh-kayal-dev&theme=github-dark&hide_border=true&area=true&bg_color=0d1117&color=58a6ff&line=58a6ff&point=ffffff)
+
+</div>
 
 ---
 
-## 📄 License
+## ?? Achievements
 
-This project is licensed under the ISC License. See the [LICENSE](LICENSE) file for more information.
+<div align="center">
+
+![Trophies](https://github-profile-trophy.vercel.app/?username=rajesh-kayal-dev&theme=onedark&no-frame=true&no-bg=true&margin-w=4&row=2&column=4)
+
+![Profile Views](https://komarev.com/ghpvc/?username=rajesh-kayal-dev&label=Profile+Views&color=blue&style=for-the-badge)
+
+</div>
