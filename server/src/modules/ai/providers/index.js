@@ -24,7 +24,7 @@ export async function generateCompletion(messages, options = {}) {
   } else if (isHeavy) {
     providerChain = [freemodelProvider, geminiProvider, openrouterProvider];
   } else {
-    providerChain = [geminiProvider, freemodelProvider, openrouterProvider];
+    providerChain = [freemodelProvider, geminiProvider, openrouterProvider];
   }
 
   logger.info(
