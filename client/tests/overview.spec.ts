@@ -128,7 +128,8 @@ test.describe("Overview Page", () => {
     test("displays loading skeletons then resolves cleanly", async ({ page }) => {
       const skeleton = page.locator(".animate-pulse").first();
       await expect(skeleton).toBeVisible({ timeout: 5000 }).catch(() => {});
-      await page.waitForLoadState("load");
+      await expect(page.locator("text=Workspace Insights")).toBeVisible({ timeout: 15000 });
+      await expect(page.locator("text=Activity").first()).toBeVisible();
       const skeletonCount = await page.locator(".animate-pulse").count();
       expect(skeletonCount).toBeLessThan(10);
     });
