@@ -394,7 +394,6 @@ export const getReadme = async (req, res, next) => {
     next(error);
   }
 };
-
 function mapEventType(type) {
   const map = {
     imported: "import",

@@ -140,7 +140,6 @@ test.describe("Overview Page", () => {
     test.beforeEach(async ({ page }) => {
       await mockAuth(page);
       await mockDashboard(page);
-      // Override contributions route to fail
       await page.route("**/api/dashboard/contributions", async (route) => {
         await route.fulfill({
           status: 500,
@@ -153,11 +152,8 @@ test.describe("Overview Page", () => {
     });
 
     test("hides contribution graph and badges, shows readme preview", async ({ page }) => {
-      // Contribution graph text should NOT be visible
       await expect(page.locator("text=contributions in the last year")).not.toBeVisible();
-      // GitHub Achievements should NOT be visible
       await expect(page.locator("text=GitHub Achievements").first()).not.toBeVisible();
-      // Instead, the README preview section should be visible
       await expect(page.locator("text=Full-stack developer from India.").first()).toBeVisible();
     });
   });
