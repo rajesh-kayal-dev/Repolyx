@@ -96,6 +96,18 @@ export const api = {
     actions() {
       return request<{ actions: any[] }>("/api/dashboard/actions");
     },
+    githubProfile() {
+      return request<{ profile: any }>("/api/dashboard/github-profile");
+    },
+    contributions() {
+      return request<{ contributions: any }>("/api/dashboard/contributions");
+    },
+    achievements() {
+      return request<{ achievements: any[] }>("/api/dashboard/achievements");
+    },
+    readme() {
+      return request<{ readme: string | null; htmlUrl: string | null }>("/api/dashboard/readme");
+    },
   },
   ai: {
     sessions: {
@@ -125,6 +137,29 @@ export const api = {
     },
     getPrompts(repositoryId: string) {
       return request<{ prompts: string[] }>(`/api/ai/prompts/${repositoryId}`);
+    },
+  },
+  reviews: {
+    listPrs(repositoryId: string) {
+      return request<{ prs: any[] }>(`/api/reviews/prs/${repositoryId}`);
+    },
+    create(data: any) {
+      return request<any>("/api/reviews", { method: "POST", body: JSON.stringify(data) });
+    },
+    list() {
+      return request<any>("/api/reviews");
+    },
+    get(id: any) {
+      return request<any>(`/api/reviews/${id}`);
+    },
+    delete(id: any) {
+      return request<any>(`/api/reviews/${id}`, { method: "DELETE" });
+    },
+    analyze(id: any, provider?: any, model?: any) {
+      return request<any>(`/api/reviews/${id}/analyze`, {
+        method: "POST",
+        body: JSON.stringify({ provider, model }),
+      });
     },
   },
 };

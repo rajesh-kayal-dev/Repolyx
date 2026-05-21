@@ -1,32 +1,31 @@
 ---
-name: 🐛 Bug report
-about: Create a report to help us improve
-title: '[BUG] '
-labels: bug, triage
-assignees: ''
-
+name: "🐛 Bug Report"
+about: "Report a bug to help improve Repolyx"
+title: "[BUG] <title>"
+labels: [ "needs-triage" ]
+assignees: ""
 ---
 
-**Describe the Bug**
+### Describe the Bug
 A clear and concise description of what the bug is.
 
-**To Reproduce**
-Steps to reproduce the behavior:
+### Steps to Reproduce
 1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+2. Click on '...'
+3. Scroll down to '...'
+4. See error: '...'
 
-**Expected Behavior**
+### Expected Behavior
 A clear and concise description of what you expected to happen.
 
-**Screenshots/Logs**
-If applicable, add screenshots or logs to help explain your problem.
+### Screenshots or Logs
+If applicable, add screenshots, console logs, or server logs to help explain your problem.
 
-**Desktop/Environment (please complete the following information):**
-- OS: [e.g. Windows, macOS]
-- Browser [e.g. chrome, safari]
-- Node Version [e.g. v20.x, v24.x]
+### Environment Context
+- **OS:** [e.g. Windows, macOS]
+- **Browser:** [e.g. Chrome, Safari]
+- **Node.js Version:** [e.g. v20.x, v24.x]
+- **Repolyx Version:** [e.g. v0.1.0]
 
-**Additional Context**
+### Additional Context
 Add any other context about the problem here.

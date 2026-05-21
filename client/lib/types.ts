@@ -242,6 +242,56 @@ export interface DocTemplate {
   description: string;
 }
 
+export interface ReviewSession {
+  id: string;
+  repositoryId: string;
+  prUrl: string | null;
+  prNumber: number | null;
+  title: string;
+  baseBranch: string | null;
+  headBranch: string | null;
+  author: string | null;
+  status: string;
+  riskLevel: string | null;
+  testCoverage: string | null;
+  ciStatus: string | null;
+  mergeReady: number;
+  summary: string | null;
+  files: ReviewFile[];
+  suggestions: ReviewSuggestion[];
+  _count?: { files: number; suggestions: number };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ReviewFile {
+  id: string;
+  reviewSessionId: string;
+  path: string;
+  status: string;
+  risk: string | null;
+  additions: number;
+  deletions: number;
+  patch: string | null;
+  content: string | null;
+  comments: number;
+  createdAt: string;
+}
+
+export interface ReviewSuggestion {
+  id: string;
+  reviewSessionId: string;
+  filePath: string | null;
+  type: string;
+  title: string;
+  description: string;
+  severity: string;
+  lineStart: number | null;
+  lineEnd: number | null;
+  codeSnippet: string | null;
+  createdAt: string;
+}
+
 export interface RepoWorkspace {
   name: string;
   stack: string;
