@@ -130,6 +130,8 @@ test.describe("Overview Page", () => {
       await expect(skeleton).toBeVisible({ timeout: 5000 }).catch(() => {});
       await expect(page.locator("text=Workspace Insights")).toBeVisible({ timeout: 15000 });
       await expect(page.locator("text=Activity").first()).toBeVisible();
+      // Wait for the skeleton elements to disappear (meaning loading has finished and actual data has rendered)
+      await page.locator(".animate-pulse").first().waitFor({ state: "hidden", timeout: 15000 });
       const skeletonCount = await page.locator(".animate-pulse").count();
       expect(skeletonCount).toBeLessThan(10);
     });

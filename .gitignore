@@ -57,3 +57,9 @@ NUL
 
 # Repolyx cache
 .repolyx-cache/
+
+# Prisma generated client (recreated via npx prisma generate)
+/server/prisma/generated/
+
+# Skill installer lock files
+skills-lock.json
