@@ -29,10 +29,11 @@ jobs:
         cd server
         npm ci --legacy-peer-deps
 
-    - name: Validate Prisma Schema
+    - name: Validate & Generate Prisma Client
       run: |
         cd server
         npx prisma validate
+        npx prisma generate
 
     - name: Install Client Dependencies
       run: |
