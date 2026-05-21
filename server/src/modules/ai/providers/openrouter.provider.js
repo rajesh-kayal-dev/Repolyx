@@ -2,6 +2,7 @@ import { env } from "../../../config/env.js";
 import logger from "../../../utils/logger.js";
 
 const FALLBACK_MODELS = [
+  "deepseek/deepseek-chat",
   "openai/gpt-4o",
   "anthropic/claude-3.5-haiku",
   "google/gemini-2.0-flash-001",
@@ -39,6 +40,10 @@ export const openrouterProvider = {
       const model = modelsToTry[attempt];
       const isLast = attempt === modelsToTry.length - 1;
 
+      const timeoutMs = options.timeoutMs || 9000;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
       try {
         logger.info(`OpenRouter attempting model: ${model} (attempt ${attempt + 1}/${modelsToTry.length})`);
 
@@ -55,6 +60,7 @@ export const openrouterProvider = {
             messages: baseFormattedMessages,
             max_tokens: options.maxTokens || 2048,
           }),
+          signal: controller.signal,
         });
 
         const responseData = await response.json();
@@ -81,11 +87,16 @@ export const openrouterProvider = {
           raw: responseData,
         };
       } catch (error) {
-        logger.warn(`OpenRouter model ${model} error: ${error.message}`);
-        errors.push({ model, error: error.message });
+        const isTimeout = error.name === "AbortError" || error.message?.includes("aborted");
+        const finalError = isTimeout ? new Error("Request timed out after 9 seconds") : error;
+
+        logger.warn(`OpenRouter model ${model} error: ${finalError.message}`);
+        errors.push({ model, error: finalError.message });
         if (isLast) {
-          throw new Error(`All OpenRouter models failed. Last error: ${error.message}`);
+          throw new Error(`All OpenRouter models failed. Last error: ${finalError.message}`);
         }
+      } finally {
+        clearTimeout(timeoutId);
       }
     }
 

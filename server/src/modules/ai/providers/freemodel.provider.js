@@ -30,6 +30,10 @@ export const freemodelProvider = {
       const model = modelsToTry[attempt];
       const isLast = attempt === modelsToTry.length - 1;
 
+      const timeoutMs = options.timeoutMs || 9000;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
       try {
         logger.info(`Freemodel attempting model: ${model} (attempt ${attempt + 1}/${modelsToTry.length})`);
 
@@ -46,6 +50,7 @@ export const freemodelProvider = {
             system: systemPrompt || undefined,
             messages: formattedMessages,
           }),
+          signal: controller.signal,
         });
 
         const responseData = await response.json();
@@ -72,11 +77,16 @@ export const freemodelProvider = {
           raw: responseData,
         };
       } catch (error) {
-        logger.warn(`Freemodel model ${model} error: ${error.message}`);
-        errors.push({ model, error: error.message });
+        const isTimeout = error.name === "AbortError" || error.message?.includes("aborted");
+        const finalError = isTimeout ? new Error("Request timed out after 9 seconds") : error;
+
+        logger.warn(`Freemodel model ${model} error: ${finalError.message}`);
+        errors.push({ model, error: finalError.message });
         if (isLast) {
-          throw new Error(`All Freemodel models failed. Last error: ${error.message}`);
+          throw new Error(`All Freemodel models failed. Last error: ${finalError.message}`);
         }
+      } finally {
+        clearTimeout(timeoutId);
       }
     }
 

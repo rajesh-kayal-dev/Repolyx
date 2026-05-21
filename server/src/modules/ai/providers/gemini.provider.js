@@ -47,6 +47,10 @@ export const geminiProvider = {
       const isLast = attempt === modelsToTry.length - 1;
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.GEMINI_API_KEY}`;
 
+      const timeoutMs = options.timeoutMs || 9000;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
       try {
         logger.info(`Gemini attempting model: ${model} (attempt ${attempt + 1}/${modelsToTry.length})`);
 
@@ -54,6 +58,7 @@ export const geminiProvider = {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(baseBody),
+          signal: controller.signal,
         });
 
         const responseData = await response.json();
@@ -80,11 +85,16 @@ export const geminiProvider = {
           raw: responseData,
         };
       } catch (error) {
-        logger.warn(`Gemini model ${model} error: ${error.message}`);
-        errors.push({ model, error: error.message });
+        const isTimeout = error.name === "AbortError" || error.message?.includes("aborted");
+        const finalError = isTimeout ? new Error("Request timed out after 9 seconds") : error;
+
+        logger.warn(`Gemini model ${model} error: ${finalError.message}`);
+        errors.push({ model, error: finalError.message });
         if (isLast) {
-          throw new Error(`All Gemini models failed. Last error: ${error.message}`);
+          throw new Error(`All Gemini models failed. Last error: ${finalError.message}`);
         }
+      } finally {
+        clearTimeout(timeoutId);
       }
     }
 

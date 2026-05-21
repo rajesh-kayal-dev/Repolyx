@@ -7,15 +7,16 @@ datasource db {
 }
 
 model User {
-  id                String        @id @default(cuid())
-  githubId          String        @unique
+  id                String          @id @default(cuid())
+  githubId          String          @unique
   username          String
   email             String?
   avatarUrl         String?
   githubAccessToken String?
   repositories      Repository[]
   chatSessions      ChatSession[]
-  createdAt         DateTime      @default(now())
+  reviewSessions    ReviewSession[]
+  createdAt         DateTime        @default(now())
 }
 
 model Repository {
@@ -42,6 +43,7 @@ model Repository {
   analyses       RepositoryAnalysis[]
   chatSessions   ChatSession[]
   aiContext      AIContext?
+  reviewSessions ReviewSession[]
   createdAt      DateTime             @default(now())
   updatedAt      DateTime             @updatedAt
 }
@@ -123,8 +125,66 @@ model AIContext {
   repositoryId      String     @unique
   repository        Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
   activeFile        String?
-  relatedFiles      Json? // Array of paths or objects
+  relatedFiles      Json?
   repositorySummary String?
-  metadata          Json? // extra metadata
+  metadata          Json?
   createdAt         DateTime   @default(now())
+}
+
+model ReviewSession {
+  id             String             @id @default(cuid())
+  repositoryId   String
+  repository     Repository         @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prUrl          String?
+  prNumber       Int?
+  title          String
+  baseBranch     String?
+  headBranch     String?
+  author         String?
+  status         String             @default("pending")
+  riskLevel      String?
+  testCoverage   String?
+  ciStatus       String?
+  mergeReady     Int                @default(0)
+  summary        String?
+  report         String?
+  metadata       Json?
+  files          ReviewFile[]
+  suggestions    ReviewSuggestion[]
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+}
+
+model ReviewFile {
+  id              String        @id @default(cuid())
+  reviewSessionId String
+  reviewSession   ReviewSession @relation(fields: [reviewSessionId], references: [id], onDelete: Cascade)
+  path            String
+  status          String        @default("modified")
+  risk            String?
+  additions       Int           @default(0)
+  deletions       Int           @default(0)
+  patch           String?
+  content         String?
+  comments        Int           @default(0)
+  createdAt       DateTime      @default(now())
+
+  @@unique([reviewSessionId, path])
+}
+
+model ReviewSuggestion {
+  id              String        @id @default(cuid())
+  reviewSessionId String
+  reviewSession   ReviewSession @relation(fields: [reviewSessionId], references: [id], onDelete: Cascade)
+  filePath        String?
+  type            String        @default("quality")
+  title           String
+  description     String
+  severity        String        @default("medium")
+  lineStart       Int?
+  lineEnd         Int?
+  codeSnippet     String?
+  createdAt       DateTime      @default(now())
 }

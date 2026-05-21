@@ -50,6 +50,7 @@ node_modules/
 .playwright-mcp/
 /client/playwright-report/
 /client/test-results/
+/test-results/
 /client/tsconfig.tsbuildinfo
 
 # Windows reserved device names
