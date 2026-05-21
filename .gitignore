@@ -48,9 +48,18 @@ node_modules/
 
 # Playwright test artifacts
 .playwright-mcp/
+/client/playwright-report/
+/client/test-results/
+/client/tsconfig.tsbuildinfo
 
 # Windows reserved device names
 NUL
 
 # Repolyx cache
 .repolyx-cache/
+
+# Prisma generated client (recreated via npx prisma generate)
+/server/prisma/generated/
+
+# Skill installer lock files
+skills-lock.json

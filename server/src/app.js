@@ -11,6 +11,7 @@ import aiRoutes from "./modules/ai/routes/ai.routes.js";
 import dashboardRoutes from "./routes/dashboard.routes.js";
 import { env } from "./config/env.js";
 import { errorHandler } from "./middleware/errorHandler.js";
+import PrismaSessionStore from "./database/sessionStore.js";
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use(cookieParser());
 // 4. Session management (required by Passport session strategy)
 app.use(
   session({
+    store: new PrismaSessionStore(),
     secret: env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,

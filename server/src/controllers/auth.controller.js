@@ -5,7 +5,7 @@ export const githubCallback = (req, res) => {
   logger.info(`User ${req.user.username} logged in successfully via GitHub.`);
   
   // Redirect to the frontend application dashboard or home page
-  res.redirect(`${env.FRONTEND_URL}/dashboard`);
+  res.redirect(`${env.FRONTEND_URL}/overview`);
 };
 
 export const logout = (req, res, next) => {
