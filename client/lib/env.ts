@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const envSchema = z.object({
-  NEXT_PUBLIC_API_URL: z.string().url().default("http://localhost:5000"),
+  NEXT_PUBLIC_API_URL: z.string().default(""),
 });
 
 // Since Next.js loads env variables differently depending on server/client side,
@@ -16,14 +16,12 @@ const parseEnv = () => {
     result.error.issues.forEach((issue) => {
       console.error(`   - ${issue.path.join(".")}: ${issue.message}`);
     });
-    // On the client browser we don't want to crash but we want to know,
-    // on build/server side we could throw.
     if (typeof window === "undefined") {
       throw new Error("Invalid client environment variables configuration");
     }
   }
 
-  return result.success ? result.data : { NEXT_PUBLIC_API_URL: "http://localhost:5000" };
+  return result.success ? result.data : { NEXT_PUBLIC_API_URL: "" };
 };
 
 export const env = parseEnv();
