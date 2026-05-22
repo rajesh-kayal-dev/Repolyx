@@ -9,6 +9,7 @@ import aiRoutes from "./modules/ai/routes/ai.routes.js";
 import reviewRoutes from "./modules/review/routes/review.routes.js";
 import dashboardRoutes from "./routes/dashboard.routes.js";
 import debugRoutes from "./modules/debug/routes/debug.routes.js";
+import notificationRoutes from "./routes/notifications.routes.js";
 import { env } from "./config/env.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
@@ -46,6 +47,7 @@ app.use("/api/ai", aiRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/debug", debugRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {

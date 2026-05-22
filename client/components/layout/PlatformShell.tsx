@@ -3,15 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import {
-    Bell,
     ChevronDown,
-    FileText,
     GitBranch,
     GitPullRequest,
     Menu,
-    MessageSquare,
     Search,
-    TerminalSquare,
 } from 'lucide-react';
 import { RepolyxLogo } from '@/components/brand/RepolyxLogo';
 import { Sidebar } from './Sidebar';
@@ -21,16 +17,11 @@ import { AnimatePresence } from 'framer-motion';
 import { ToastContainer } from '@/components/ui/ToastContainer';
 import { useImportRepo } from '@/lib/import-repo-context';
 import { useAuth } from '@/lib/auth-context';
+import { CommandPalette } from './CommandPalette';
+import { NotificationDropdown } from './NotificationDropdown';
 
 const HEADER_HEIGHT = 56;
 const SIDEBAR_WIDTH = 240;
-
-const quickActions = [
-    { label: 'Repositories', icon: GitBranch },
-    { label: 'Pull Requests', icon: FileText },
-    { label: 'AI Chat', icon: MessageSquare },
-    { label: 'Debug Console', icon: TerminalSquare },
-];
 
 interface NavRepo {
     id: string;
@@ -44,20 +35,16 @@ interface NavRepo {
 export function PlatformShell({ children }: { children: ReactNode }) {
     const { user } = useAuth();
     const [sidebarOpen, setSidebarOpen] = useState(true);
-    const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
     const [isRepoSwitcherOpen, setIsRepoSwitcherOpen] = useState(false);
     const [isHelpOpen, setIsHelpOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [navRepos, setNavRepos] = useState<NavRepo[]>([]);
     const [activeRepo, setActiveRepo] = useState<NavRepo | null>(null);
     const { openImportRepo } = useImportRepo();
-    const searchRef = useRef<HTMLDivElement | null>(null);
     const repoSwitcherRef = useRef<HTMLDivElement | null>(null);
 
     const handleClickOutside = useCallback((e: MouseEvent) => {
-        if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
-            setIsSearchOpen(false);
-        }
         if (repoSwitcherRef.current && !repoSwitcherRef.current.contains(e.target as Node)) {
             setIsRepoSwitcherOpen(false);
         }
@@ -65,21 +52,29 @@ export function PlatformShell({ children }: { children: ReactNode }) {
 
     const handleEscape = useCallback((e: KeyboardEvent) => {
         if (e.key === 'Escape') {
-            setIsSearchOpen(false);
             setIsRepoSwitcherOpen(false);
             setIsHelpOpen(false);
             setIsSettingsOpen(false);
         }
     }, []);
 
+    const handleKeyDown = useCallback((e: KeyboardEvent) => {
+        if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+            e.preventDefault();
+            setIsCommandPaletteOpen((prev) => !prev);
+        }
+    }, []);
+
     useEffect(() => {
         document.addEventListener('mousedown', handleClickOutside);
         document.addEventListener('keydown', handleEscape);
+        document.addEventListener('keydown', handleKeyDown);
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
             document.removeEventListener('keydown', handleEscape);
+            document.removeEventListener('keydown', handleKeyDown);
         };
-    }, [handleClickOutside, handleEscape]);
+    }, [handleClickOutside, handleEscape, handleKeyDown]);
 
     useEffect(() => {
         const token = localStorage.getItem('repolyx_token');
@@ -124,7 +119,7 @@ export function PlatformShell({ children }: { children: ReactNode }) {
                     {/* Spacer */}
                     <div className="flex-1" />
 
-                    {/* Right group: search, repo switcher, import, pr, notifications, profile */}
+                    {/* Right group */}
                     <div className="flex items-center gap-1.5">
                         {/* Import */}
                         <button
@@ -135,54 +130,20 @@ export function PlatformShell({ children }: { children: ReactNode }) {
                             <GitBranch size={13} />
                             Import
                         </button>
-                        {/* Search */}
-                        <div ref={searchRef} className="relative">
-                            <button
-                                type="button"
-                                onClick={() => setIsSearchOpen(true)}
-                                className="flex items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-1.5 text-sm text-neutral-500 transition-colors hover:bg-white/[0.06] hover:text-neutral-400 w-[180px] lg:w-[240px]"
-                            >
-                                <Search size={14} />
-                                <span className="flex-1 text-left truncate hidden sm:inline">Search repos, PRs...</span>
-                                <span className="flex-1 text-left truncate sm:hidden">Search...</span>
-                                <kbd className="items-center gap-1 rounded-md border border-white/[0.06] bg-white/[0.04] px-1.5 py-0.5 text-[10px] text-neutral-500 hidden sm:inline-flex">
-                                    <span>⌘</span>K
-                                </kbd>
-                            </button>
 
-                            {isSearchOpen && (
-                                <div className="absolute right-0 top-full mt-1.5 w-80 rounded-xl border border-white/[0.08] bg-[#0c101a] p-3 shadow-elevated">
-                                    <div className="flex items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2">
-                                        <Search size={14} className="text-neutral-500" />
-                                        <input
-                                            autoFocus
-                                            type="search"
-                                            aria-label="Search"
-                                            placeholder="Search repos, PRs, errors..."
-                                            className="w-full bg-transparent text-sm text-white outline-none placeholder:text-neutral-500"
-                                        />
-                                    </div>
-                                    <div className="mt-3 space-y-1">
-                                        <p className="px-2 py-1 text-[11px] font-medium uppercase tracking-wider text-neutral-500">
-                                            Quick actions
-                                        </p>
-                                        {quickActions.map((action) => {
-                                            const Icon = action.icon;
-                                            return (
-                                                <button
-                                                    key={action.label}
-                                                    type="button"
-                                                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-neutral-400 transition-colors hover:bg-white/[0.04] hover:text-neutral-200"
-                                                >
-                                                    <Icon size={14} className="text-neutral-500" />
-                                                    <span>{action.label}</span>
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                        {/* Search / Command Palette trigger */}
+                        <button
+                            type="button"
+                            onClick={() => setIsCommandPaletteOpen(true)}
+                            className="flex items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-1.5 text-sm text-neutral-500 transition-colors hover:bg-white/[0.06] hover:text-neutral-400 w-[180px] lg:w-[240px]"
+                        >
+                            <Search size={14} />
+                            <span className="flex-1 text-left truncate hidden sm:inline">Search repos, PRs...</span>
+                            <span className="flex-1 text-left truncate sm:hidden">Search...</span>
+                            <kbd className="items-center gap-1 rounded-md border border-white/[0.06] bg-white/[0.04] px-1.5 py-0.5 text-[10px] text-neutral-500 hidden sm:inline-flex">
+                                <span>⌘</span>K
+                            </kbd>
+                        </button>
 
                         {/* Repo switcher */}
                         {navRepos.length > 0 && activeRepo && (
@@ -227,16 +188,8 @@ export function PlatformShell({ children }: { children: ReactNode }) {
                             <GitPullRequest size={16} />
                         </a>
 
-                        {/* Notifications */}
-                        <a
-                            href={`https://github.com/notifications`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-500 hover:bg-white/[0.06] hover:text-neutral-300 transition-colors relative"
-                            aria-label="Notifications"
-                        >
-                            <Bell size={16} />
-                        </a>
+                        {/* Notifications (in-app) */}
+                        <NotificationDropdown />
 
                         {/* Profile */}
                         <a
@@ -288,6 +241,12 @@ export function PlatformShell({ children }: { children: ReactNode }) {
                     </div>
                 </main>
             </div>
+
+            <CommandPalette
+                isOpen={isCommandPaletteOpen}
+                onClose={() => setIsCommandPaletteOpen(false)}
+                navRepos={navRepos}
+            />
 
             <AnimatePresence>
                 {isHelpOpen && <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />}
