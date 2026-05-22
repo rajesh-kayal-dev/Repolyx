@@ -1,46 +1,33 @@
 import logger from "../utils/logger.js";
 import { env } from "../config/env.js";
+import { signToken } from "../utils/jwt.js";
 
 export const githubCallback = (req, res) => {
   logger.info(`User ${req.user.username} logged in successfully via GitHub.`);
-  
-  // Redirect to the frontend application dashboard or home page
+
   const frontendUrl = env.FRONTEND_URL.split(",")[0].trim();
-  res.redirect(`${frontendUrl}/overview`);
+  const token = signToken(req.user.id);
+  res.redirect(`${frontendUrl}/overview?token=${token}`);
 };
 
-export const logout = (req, res, next) => {
+export const logout = (req, res) => {
   const username = req.user?.username;
-  
-  req.logout((err) => {
-    if (err) {
-      return next(err);
-    }
-    
-    logger.info(`User ${username} logged out.`);
-    res.json({
-      success: true,
-      message: "Logged out successfully"
-    });
+  logger.info(`User ${username} logged out.`);
+  res.json({
+    success: true,
+    message: "Logged out successfully"
   });
 };
 
 export const getCurrentUser = (req, res) => {
-  if (req.user) {
-    res.json({
-      success: true,
-      user: {
-        id: req.user.id,
-        username: req.user.username,
-        email: req.user.email,
-        avatarUrl: req.user.avatarUrl,
-        createdAt: req.user.createdAt
-      }
-    });
-  } else {
-    res.status(401).json({
-      success: false,
-      message: "Not authenticated"
-    });
-  }
+  res.json({
+    success: true,
+    user: {
+      id: req.user.id,
+      username: req.user.username,
+      email: req.user.email,
+      avatarUrl: req.user.avatarUrl,
+      createdAt: req.user.createdAt
+    }
+  });
 };

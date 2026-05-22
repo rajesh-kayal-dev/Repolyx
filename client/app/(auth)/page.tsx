@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from 'react';
 import { ArrowRight, Github, Code2, GitBranch, Shield, Loader2 } from 'lucide-react';
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
 import { RepolyxLogo } from '@/components/brand/RepolyxLogo';
-import { env } from '@/lib/env';
 
 declare global {
     interface Window {
@@ -410,7 +409,7 @@ export default function LandingPage() {
                 setIsProcessing(false);
                 setIsSuccess(true);
                 setTimeout(() => {
-                    window.location.href = `${env.NEXT_PUBLIC_API_URL}/api/auth/github`;
+                    window.location.href = `/api/auth/github`;
                 }, 400);
             }, 1200);
         } else {
@@ -1188,7 +1187,7 @@ useIsVisible();
                                 <p className="text-sm md:text-base text-neutral-400 font-light max-w-xl mx-auto mb-8">
                                     Connect your GitHub account and let AI analyze, review, and document your codebase in minutes. No setup, no configuration.
                                 </p>
-                                <a href={`${env.NEXT_PUBLIC_API_URL}/api/auth/github`} className="group relative inline-flex items-center gap-3 border border-cyan-400 bg-cyan-400/10 text-cyan-400 font-orbitron font-normal text-sm uppercase tracking-[0.2em] px-8 py-4 transition-all duration-300 hover:bg-cyan-400 hover:text-black hover:shadow-[0_0_50px_rgba(0,255,255,0.4)]">
+                                <a href={`/api/auth/github`} className="group relative inline-flex items-center gap-3 border border-cyan-400 bg-cyan-400/10 text-cyan-400 font-orbitron font-normal text-sm uppercase tracking-[0.2em] px-8 py-4 transition-all duration-300 hover:bg-cyan-400 hover:text-black hover:shadow-[0_0_50px_rgba(0,255,255,0.4)]">
                                     <span>Connect GitHub &nbsp;→</span>
                                     <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-white/50 group-hover:border-black/50" />
                                     <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-white/50 group-hover:border-black/50" />

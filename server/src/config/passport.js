@@ -23,18 +23,4 @@ passport.use(
   )
 );
 
-passport.serializeUser((user, done) => {
-  done(null, user.id);
-});
-
-passport.deserializeUser(async (id, done) => {
-  try {
-    const user = await userService.getUserById(id);
-    done(null, user);
-  } catch (error) {
-    logger.error(`Failed to deserialize user:`, error);
-    done(error);
-  }
-});
-
 export default passport;
