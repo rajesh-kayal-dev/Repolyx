@@ -11,9 +11,11 @@ interface DocHeaderProps {
   onSearchChange: (q: string) => void;
   repositories: { id: string; name: string }[];
   onGenerateDocs: () => void;
+  onRegenerate: () => void;
   onExportMarkdown: () => void;
   onSync: () => void;
   generating: boolean;
+  syncing?: boolean;
   hasDocs: boolean;
 }
 
@@ -26,9 +28,11 @@ export function DocHeader({
   onSearchChange,
   repositories,
   onGenerateDocs,
+  onRegenerate,
   onExportMarkdown,
   onSync,
   generating,
+  syncing,
   hasDocs,
 }: DocHeaderProps) {
   return (
@@ -119,16 +123,16 @@ export function DocHeader({
           <button
             type="button"
             onClick={onSync}
-            disabled={!selectedRepo}
+            disabled={!selectedRepo || generating || syncing}
             className="flex items-center gap-1.5 rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2 text-xs font-medium text-neutral-300 hover:bg-white/[0.06] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            <RefreshCw size={13} />
-            Sync
+            <RefreshCw size={13} className={syncing ? 'animate-spin' : ''} />
+            {syncing ? 'Syncing...' : 'Sync'}
           </button>
 
           <button
             type="button"
-            onClick={onGenerateDocs}
+            onClick={onRegenerate}
             disabled={!selectedRepo || generating || !hasDocs}
             className="flex items-center gap-1.5 rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2 text-xs font-medium text-neutral-300 hover:bg-white/[0.06] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
           >
