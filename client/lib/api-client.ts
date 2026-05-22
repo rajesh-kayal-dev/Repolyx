@@ -173,6 +173,19 @@ export const api = {
       });
     },
   },
+  activity: {
+    feed(params?: { type?: string; repo?: string; time?: string; search?: string; limit?: number; offset?: number }) {
+      const q = new URLSearchParams();
+      if (params?.type) q.set("type", params.type);
+      if (params?.repo) q.set("repo", params.repo);
+      if (params?.time) q.set("time", params.time);
+      if (params?.search) q.set("search", params.search);
+      if (params?.limit) q.set("limit", String(params.limit));
+      if (params?.offset) q.set("offset", String(params.offset));
+      const qs = q.toString();
+      return request<any>(`/api/activity${qs ? `?${qs}` : ""}`);
+    },
+  },
   debug: {
     repositories: {
       list() {

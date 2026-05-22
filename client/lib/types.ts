@@ -94,6 +94,51 @@ export interface GitHubRepo {
   isImported: boolean;
 }
 
+export interface ActivityExpandableData {
+  aiExplanation: string | null;
+  suggestedFix: string | null;
+  relatedFiles: { path: string; purpose: string }[] | null;
+  relatedReviews: { id: string; title: string; risk: string; status: string }[] | null;
+}
+
+export interface ActivityCardEvent {
+  id: string;
+  type: string;
+  filterLabel: string;
+  category: 'success' | 'warning' | 'critical' | 'info';
+  explanation: string;
+  repo: string;
+  repoId: string;
+  timestamp: string;
+  action: { label: string; href: string };
+  live: boolean;
+  expandable: ActivityExpandableData;
+}
+
+export interface LiveScanStep {
+  label: string;
+  done: boolean;
+}
+
+export interface LiveScan {
+  repo: string;
+  status: string;
+  steps: LiveScanStep[];
+}
+
+export interface WorkspaceInsights {
+  repositoriesScanned: number;
+  healthScore: number;
+  activeIssues: number;
+  securityRisks: number;
+  recommendedActions: { text: string; priority: string }[];
+}
+
+export interface RepoOption {
+  id: string;
+  name: string;
+}
+
 export interface ActivityItem {
   title: string;
   detail: string;

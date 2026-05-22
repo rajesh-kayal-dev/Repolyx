@@ -1,83 +1,73 @@
-import { AlertTriangle, CheckCircle2, FileText, GitCommit, GitPullRequest, Info, Layers, RefreshCw, Shield, ShieldAlert, TerminalSquare } from 'lucide-react';
-import type { ActivityEvent } from '@/lib/types';
+'use client';
 
-const typeConfig: Record<string, { icon: typeof Info; class: string }> = {
-    scan: { icon: CheckCircle2, class: 'text-emerald-400' },
-    analysis: { icon: Layers, class: 'text-accent' },
-    pr: { icon: GitPullRequest, class: 'text-emerald-400' },
-    security: { icon: ShieldAlert, class: 'text-red-400' },
-    dependency: { icon: AlertTriangle, class: 'text-amber-400' },
-    docs: { icon: FileText, class: 'text-accent' },
-    debug: { icon: TerminalSquare, class: 'text-amber-400' },
-    sync: { icon: RefreshCw, class: 'text-neutral-400' },
-    auth: { icon: Shield, class: 'text-accent' },
-};
+import { ActivityCard } from './ActivityCard';
+import type { ActivityCardEvent } from '@/lib/types';
 
 interface ActivityFeedProps {
-    events: ActivityEvent[];
+  events: ActivityCardEvent[];
+  isBeginner: boolean;
 }
 
-const groups = [
-    { label: 'Today', range: 'today' },
-    { label: 'Yesterday', range: 'yesterday' },
-    { label: 'Earlier this week', range: 'week' },
-];
+function groupEvents(events: ActivityCardEvent[]): { label: string; events: ActivityCardEvent[] }[] {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const yesterday = today - 86400000;
+  const weekStart = today - now.getDay() * 86400000;
 
-export function ActivityFeed({ events }: ActivityFeedProps) {
+  const groups: { label: string; events: ActivityCardEvent[] }[] = [
+    { label: 'Today', events: [] },
+    { label: 'Yesterday', events: [] },
+    { label: 'Earlier This Week', events: [] },
+    { label: 'Older', events: [] },
+  ];
+
+  for (const e of events) {
+    const t = new Date(e.timestamp).getTime();
+    if (t >= today) groups[0].events.push(e);
+    else if (t >= yesterday) groups[1].events.push(e);
+    else if (t >= weekStart) groups[2].events.push(e);
+    else groups[3].events.push(e);
+  }
+
+  return groups.filter((g) => g.events.length > 0);
+}
+
+export function ActivityFeed({ events, isBeginner }: ActivityFeedProps) {
+  const groups = groupEvents(events);
+
+  if (groups.length === 0) {
     return (
-        <div>
-            {groups.map((group) => {
-                const groupEvents = events.filter((_, i) => {
-                    if (group.range === 'today') return i < 3;
-                    if (group.range === 'yesterday') return i >= 3 && i < 6;
-                    return i >= 6;
-                });
-                if (groupEvents.length === 0) return null;
-
-                return (
-                    <div key={group.range} className="mb-6 last:mb-0">
-                        <div className="flex items-center gap-3 mb-3">
-                            <h3 className="text-xs font-medium text-neutral-500 uppercase tracking-wider">{group.label}</h3>
-                            <span className="h-px flex-1 bg-white/[0.04]" />
-                        </div>
-                        <div className="space-y-1">
-                            {groupEvents.map((event) => {
-                                const config = typeConfig[event.type] || { icon: Info, class: 'text-neutral-400' };
-                                const Icon = config.icon;
-                                return (
-                                    <div
-                                        key={event.id}
-                                        className="flex items-start gap-3 rounded-lg px-4 py-3 hover:bg-white/[0.02] transition-colors"
-                                    >
-                                        <Icon size={14} className={`shrink-0 mt-0.5 ${config.class}`} />
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2 flex-wrap">
-                                                <p className="text-sm text-neutral-200">{event.title}</p>
-                                                <span className="text-[11px] text-neutral-500">{event.repo}</span>
-                                                {event.live && (
-                                                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse-dot" />
-                                                )}
-                                            </div>
-                                            <p className="text-xs text-neutral-500 mt-0.5 line-clamp-1">{event.description}</p>
-                                        </div>
-                                        <div className="flex items-center gap-2 shrink-0">
-                                            <span className="text-[11px] text-neutral-500">{event.timestamp}</span>
-                                            {event.quickActions.length > 0 && (
-                                                <button
-                                                    type="button"
-                                                    className="text-[11px] text-accent hover:text-white transition-colors opacity-0 group-hover:opacity-100"
-                                                >
-                                                    View
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                );
-            })}
+      <div className="rounded-2xl border border-white/[0.06] bg-[#090b10] p-12 text-center">
+        <div className="flex flex-col items-center gap-2">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.04]">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-neutral-500">
+              <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5" />
+              <circle cx="8" cy="8" r="2" fill="currentColor" />
+            </svg>
+          </div>
+          <p className="text-sm text-neutral-400">No activity found matching your filters.</p>
+          <p className="text-xs text-neutral-500">Try adjusting your search or filter criteria.</p>
         </div>
+      </div>
     );
+  }
+
+  return (
+    <div className="space-y-6">
+      {groups.map((group) => (
+        <div key={group.label}>
+          <div className="flex items-center gap-3 mb-3 px-1">
+            <h3 className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider">{group.label}</h3>
+            <span className="h-px flex-1 bg-white/[0.04]" />
+            <span className="text-[10px] text-neutral-600">{group.events.length}</span>
+          </div>
+          <div className="space-y-2">
+            {group.events.map((event) => (
+              <ActivityCard key={event.id} event={event} isBeginner={isBeginner} />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
