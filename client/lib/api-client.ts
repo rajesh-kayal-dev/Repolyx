@@ -186,6 +186,14 @@ export const api = {
       return request<any>(`/api/activity${qs ? `?${qs}` : ""}`);
     },
   },
+  docs: {
+    get(repositoryId: string) {
+      return request<any>(`/api/docs/${repositoryId}`);
+    },
+    generate(repositoryId: string) {
+      return request<any>(`/api/docs/${repositoryId}/generate`, { method: "POST" });
+    },
+  },
   debug: {
     repositories: {
       list() {

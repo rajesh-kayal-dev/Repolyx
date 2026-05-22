@@ -11,6 +11,7 @@ import dashboardRoutes from "./routes/dashboard.routes.js";
 import debugRoutes from "./modules/debug/routes/debug.routes.js";
 import notificationRoutes from "./routes/notifications.routes.js";
 import activityRoutes from "./routes/activity.routes.js";
+import docsRoutes from "./routes/docs.routes.js";
 import { env } from "./config/env.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
@@ -50,6 +51,7 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/debug", debugRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/activity", activityRoutes);
+app.use("/api/docs", docsRoutes);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
