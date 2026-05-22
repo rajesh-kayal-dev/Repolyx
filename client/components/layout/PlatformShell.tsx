@@ -19,6 +19,7 @@ import { HelpModal } from '@/components/settings/HelpModal';
 import { SettingsModal } from '@/components/settings/SettingsModal';
 import { AnimatePresence } from 'framer-motion';
 import { ToastContainer } from '@/components/ui/ToastContainer';
+import { useImportRepo } from '@/lib/import-repo-context';
 
 const HEADER_HEIGHT = 56;
 const SIDEBAR_WIDTH = 240;
@@ -43,6 +44,7 @@ export function PlatformShell({ children }: { children: ReactNode }) {
     const [isHelpOpen, setIsHelpOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [activeRepo, setActiveRepo] = useState(repos[0]);
+    const { openImportRepo } = useImportRepo();
     const searchRef = useRef<HTMLDivElement | null>(null);
     const repoSwitcherRef = useRef<HTMLDivElement | null>(null);
 
@@ -97,8 +99,17 @@ export function PlatformShell({ children }: { children: ReactNode }) {
                     {/* Spacer */}
                     <div className="flex-1" />
 
-                    {/* Right group: search, repo switcher, pr, notifications, profile */}
+                    {/* Right group: search, repo switcher, import, pr, notifications, profile */}
                     <div className="flex items-center gap-1.5">
+                        {/* Import */}
+                        <button
+                            type="button"
+                            onClick={openImportRepo}
+                            className="hidden sm:flex items-center gap-1.5 rounded-lg border border-accent/20 bg-accent/5 px-3 py-1.5 text-xs font-medium text-accent hover:bg-accent/10 transition-colors mr-1"
+                        >
+                            <GitBranch size={13} />
+                            Import
+                        </button>
                         {/* Search */}
                         <div ref={searchRef} className="relative">
                             <button

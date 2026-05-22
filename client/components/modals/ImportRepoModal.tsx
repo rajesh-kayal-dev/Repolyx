@@ -1,23 +1,19 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Github,
   Search,
-  ChevronDown,
   Check,
   Loader2,
   AlertTriangle,
-  Plus,
-  BookOpen,
-  Sparkles,
-  GitBranch,
   Clock,
   FileCode,
-  Shield,
   ExternalLink,
+  GitBranch,
 } from 'lucide-react';
+import { Modal } from '@/components/ui/Modal';
 import { api } from '@/lib/api-client';
 import type { Repository, GitHubRepo } from '@/lib/types';
 import { mutate } from 'swr';
@@ -25,21 +21,26 @@ import { mutate } from 'swr';
 const SCAN_STEPS = [
   'Importing repository...',
   'Fetching repository structure...',
+
   'Reading dependencies...',
   'Analyzing architecture...',
   'Generating AI summary...',
   'Ready',
 ];
 
-export default function RepositoriesPage() {
+interface ImportRepoModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export function ImportRepoModal({ isOpen, onClose }: ImportRepoModalProps) {
   const router = useRouter();
-  const [isMounted, setIsMounted] = useState(false);
   const [importedRepos, setImportedRepos] = useState<Repository[]>([]);
   const [githubRepos, setGithubRepos] = useState<GitHubRepo[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedFilter, setSelectedFilter] = useState<'all' | 'imported' | 'available'>('all');
+  const [selectedFilter, setSelectedFilter] = useState<'all' | 'imported' | 'not_imported'>('all');
 
   const [importingRepoId, setImportingRepoId] = useState<string | null>(null);
   const [importProgress, setImportProgress] = useState(0);
@@ -47,13 +48,9 @@ export default function RepositoriesPage() {
   const [importError, setImportError] = useState<string | null>(null);
 
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isMounted) return;
+    if (!isOpen) return;
     loadRepositories();
-  }, [isMounted]);
+  }, [isOpen]);
 
   const loadRepositories = async () => {
     try {
@@ -74,7 +71,7 @@ export default function RepositoriesPage() {
     }
   };
 
-  const handleImport = async (repo: GitHubRepo) => {
+  const handleImport = async (repo: any) => {
     try {
       setImportingRepoId(repo.id);
       setImportProgress(0);
@@ -90,7 +87,10 @@ export default function RepositoriesPage() {
         }
       }
 
-      const res = await api.repositories.importAndScan(repo, repo.defaultBranch || 'main');
+      const res = await api.repositories.importAndScan(
+        { ...repo, defaultBranch: repo.defaultBranch || repo.default_branch || 'main' },
+        repo.defaultBranch || repo.default_branch || 'main'
+      );
 
       setImportStep(SCAN_STEPS.length - 1);
       setImportProgress(100);
@@ -101,8 +101,9 @@ export default function RepositoriesPage() {
       setImportProgress(0);
 
       await loadRepositories();
-      await mutate('/api/debug/repositories');
-      router.push(`/repositories/${res.repository.id}`);
+      await mutate('/api/debug/repositories'); // Ensure global debug cache updates
+      onClose();
+      router.push(`/debug?scanRepoId=${res.repository.id}`);
     } catch (e: any) {
       setImportError(e.message || 'Import failed');
       setImportingRepoId(null);
@@ -156,24 +157,19 @@ export default function RepositoriesPage() {
 
   const filteredRepos = useMemo(() => {
     return mergedRepos.filter((repo) => {
-      const matchesSearch = repo.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      const matchesSearch =
+        repo.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (repo.description && repo.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
         (repo.language && repo.language.toLowerCase().includes(searchQuery.toLowerCase()));
 
       if (!matchesSearch) return false;
 
       if (selectedFilter === 'imported') return repo.isImported;
-      if (selectedFilter === 'available') return !repo.isImported;
+      if (selectedFilter === 'not_imported') return !repo.isImported;
 
       return true;
     });
   }, [mergedRepos, searchQuery, selectedFilter]);
-
-  const languages = useMemo(() => {
-    const set = new Set<string>();
-    mergedRepos.forEach((r) => { if (r.language && r.language !== 'Unknown') set.add(r.language); });
-    return Array.from(set).sort();
-  }, [mergedRepos]);
 
   const formatDate = (dateStr: string) => {
     if (!dateStr) return '';
@@ -189,46 +185,10 @@ export default function RepositoriesPage() {
     return d.toLocaleDateString();
   };
 
-  if (!isMounted || isLoading) {
-    return (
-      <div className="flex h-96 items-center justify-center">
-        <Loader2 className="h-5 w-5 animate-spin text-neutral-500" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="max-w-md mx-auto text-center py-16">
-        <AlertTriangle size={24} className="text-amber-400 mx-auto mb-3" />
-        <h2 className="text-sm font-semibold text-white mb-1">Failed to load repositories</h2>
-        <p className="text-xs text-neutral-500 mb-4">{error}</p>
-        <button
-          onClick={loadRepositories}
-          className="rounded-md border border-white/[0.06] px-3 py-1.5 text-xs text-neutral-400 hover:bg-white/[0.03] transition-colors"
-        >
-          Try again
-        </button>
-      </div>
-    );
-  }
-
   return (
-    <div className="py-2">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.03] border border-white/[0.08]">
-            <Github size={16} className="text-neutral-400" />
-          </div>
-          <div>
-            <h1 className="text-base font-semibold text-white">Repositories</h1>
-            <p className="text-[11px] text-neutral-500">{importedRepos.length} imported · {githubRepos.length} available</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-5">
-        <div className="relative flex-1 max-w-md">
+    <Modal isOpen={isOpen} onClose={onClose} title="Import Repository" maxWidth="max-w-2xl">
+      <div className="space-y-4">
+        <div className="relative">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
           <input
             type="text"
@@ -240,7 +200,7 @@ export default function RepositoriesPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          {['all', 'imported', 'available'].map((f) => (
+          {['all', 'imported', 'not_imported'].map((f) => (
             <button
               key={f}
               onClick={() => setSelectedFilter(f as any)}
@@ -250,120 +210,123 @@ export default function RepositoriesPage() {
                   : 'border-white/[0.06] text-neutral-400 hover:bg-white/[0.03] hover:text-neutral-200'
               }`}
             >
-              {f === 'all' ? 'All' : f === 'imported' ? 'Imported' : 'Available'}
+              {f === 'all' ? 'All' : f === 'imported' ? 'Imported' : 'Not Imported'}
             </button>
           ))}
         </div>
-      </div>
 
-      <div className="rounded-lg border border-white/[0.06] divide-y divide-white/[0.03]">
-        {filteredRepos.length === 0 && (
-          <div className="py-16 text-center">
-            <Github size={24} className="text-neutral-700 mx-auto mb-3" />
-            <h3 className="text-sm font-medium text-neutral-400 mb-1">No repositories found</h3>
-            <p className="text-[11px] text-neutral-600 max-w-sm mx-auto">
-              {searchQuery
-                ? 'Try a different search query'
-                : 'Connect your GitHub account to see your repositories'}
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-5 w-5 animate-spin text-neutral-500" />
+          </div>
+        ) : error ? (
+          <div className="text-center py-8">
+            <AlertTriangle size={20} className="text-amber-400 mx-auto mb-2" />
+            <p className="text-sm text-neutral-400 mb-3">{error}</p>
+            <button
+              onClick={loadRepositories}
+              className="rounded-md border border-white/[0.06] px-3 py-1.5 text-xs text-neutral-400 hover:bg-white/[0.03] transition-colors"
+            >
+              Try again
+            </button>
+          </div>
+        ) : filteredRepos.length === 0 ? (
+          <div className="py-12 text-center">
+            <Github size={20} className="text-neutral-700 mx-auto mb-2" />
+            <p className="text-sm text-neutral-400">
+              {searchQuery ? 'No repositories match your search' : 'No repositories available'}
+            </p>
+            <p className="text-xs text-neutral-600 mt-1">
+              {searchQuery ? 'Try a different search query' : 'Connect your GitHub account to see repositories'}
             </p>
           </div>
-        )}
-
-        {filteredRepos.map((repo) => (
-          <div
-            key={repo.fromDb ? repo.id : `github-${repo.id}`}
-            className="flex items-center gap-4 px-4 py-3 hover:bg-white/[0.015] transition-colors"
-          >
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-white truncate">{repo.name}</span>
-                <span
-                  className={`shrink-0 text-[10px] leading-none px-1.5 py-0.5 rounded-sm border ${
-                    repo.visibility === 'Public' || repo.visibility === 'public'
-                      ? 'border-emerald-500/15 text-emerald-400/80'
-                      : 'border-amber-500/15 text-amber-400/80'
-                  }`}
-                >
-                  {repo.visibility}
-                </span>
-                {repo.isImported && (
-                  <span
-                    className={`shrink-0 text-[10px] leading-none px-1.5 py-0.5 rounded-sm border ${
-                      repo.isIndexed
-                        ? 'border-emerald-500/15 text-emerald-400/80'
-                        : 'border-amber-500/15 text-amber-400/80'
-                    }`}
-                  >
-                    {repo.isIndexed ? 'Indexed' : 'Pending'}
-                  </span>
-                )}
-              </div>
-
-              <p className="text-[12px] text-neutral-500 mt-0.5 line-clamp-1 max-w-xl">
-                {repo.description}
-              </p>
-
-              <div className="flex items-center gap-3 mt-1.5 text-[11px] text-neutral-500">
-                <span className="flex items-center gap-1">
-                  <FileCode size={11} className="text-neutral-600" />
-                  {repo.language}
-                </span>
-                <span className="w-0.5 h-0.5 rounded-full bg-neutral-700" />
-                <span className="flex items-center gap-1">
-                  <Clock size={11} className="text-neutral-600" />
-                  Updated {formatDate(repo.updatedAt)}
-                </span>
-                {repo.scanStatus && (
-                  <>
-                    <span className="w-0.5 h-0.5 rounded-full bg-neutral-700" />
-                    <span className="flex items-center gap-1 text-neutral-600">
-                      <GitBranch size={11} />
-                      {repo.scanStatus}
+        ) : (
+          <div className="rounded-lg border border-white/[0.06] divide-y divide-white/[0.03] max-h-[360px] overflow-y-auto">
+            {filteredRepos.map((repo) => (
+              <div
+                key={repo.fromDb ? repo.id : `github-${repo.id}`}
+                className="flex items-center gap-4 px-4 py-3 hover:bg-white/[0.015] transition-colors"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-white truncate">{repo.name}</span>
+                    <span
+                      className={`shrink-0 text-[10px] leading-none px-1.5 py-0.5 rounded-sm border ${
+                        repo.visibility === 'Public' || repo.visibility === 'public'
+                          ? 'border-emerald-500/15 text-emerald-400/80'
+                          : 'border-amber-500/15 text-amber-400/80'
+                      }`}
+                    >
+                      {repo.visibility}
                     </span>
-                  </>
-                )}
+                    {repo.isImported && (
+                      <span className="shrink-0 text-[10px] leading-none px-1.5 py-0.5 rounded-sm border border-emerald-500/15 text-emerald-400/80">
+                        Imported
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="text-[12px] text-neutral-500 mt-0.5 line-clamp-1 max-w-xl">
+                    {repo.description}
+                  </p>
+
+                  <div className="flex items-center gap-3 mt-1.5 text-[11px] text-neutral-500">
+                    <span className="flex items-center gap-1">
+                      <FileCode size={11} className="text-neutral-600" />
+                      {repo.language}
+                    </span>
+                    <span className="w-0.5 h-0.5 rounded-full bg-neutral-700" />
+                    <span className="flex items-center gap-1">
+                      <Clock size={11} className="text-neutral-600" />
+                      Updated {formatDate(repo.updatedAt)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  {repo.isImported && repo.isIndexed && (
+                    <button
+                      onClick={() => {
+                        onClose();
+                        router.push(`/repositories/${repo.id}`);
+                      }}
+                      className="rounded-md border border-accent/20 bg-accent/5 px-3 py-1.5 text-[11px] font-medium text-accent hover:bg-accent/10 transition-colors"
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <ExternalLink size={11} />
+                        Open
+                      </span>
+                    </button>
+                  )}
+
+                  {repo.isImported && !repo.isIndexed && (
+                    <button
+                      onClick={() => handleImport(repo)}
+                      disabled={importingRepoId === repo.id}
+                      className="rounded-md border border-amber-500/20 bg-amber-500/5 px-3 py-1.5 text-[11px] font-medium text-amber-400 hover:bg-amber-500/10 transition-colors disabled:opacity-50"
+                    >
+                      Re-index
+                    </button>
+                  )}
+
+                  {!repo.isImported && (
+                    <button
+                      onClick={() => handleImport(repo)}
+                      disabled={importingRepoId === repo.id}
+                      className="rounded-md border border-white/[0.08] px-3 py-1.5 text-[11px] font-medium text-neutral-300 hover:bg-white/[0.04] hover:border-accent/25 hover:text-accent transition-colors disabled:opacity-50"
+                    >
+                      {importingRepoId === repo.id ? 'Importing...' : 'Import'}
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-
-            <div className="flex items-center gap-2 shrink-0">
-              {repo.isImported && repo.isIndexed && (
-                <button
-                  onClick={() => router.push(`/repositories/${repo.id}`)}
-                  className="rounded-md border border-accent/20 bg-accent/5 px-3 py-1.5 text-[11px] font-medium text-accent hover:bg-accent/10 transition-colors"
-                >
-                  <span className="flex items-center gap-1.5">
-                    <ExternalLink size={11} />
-                    Open
-                  </span>
-                </button>
-              )}
-
-              {repo.isImported && !repo.isIndexed && (
-                <button
-                  onClick={() => handleImport(repo)}
-                  disabled={importingRepoId === repo.id}
-                  className="rounded-md border border-amber-500/20 bg-amber-500/5 px-3 py-1.5 text-[11px] font-medium text-amber-400 hover:bg-amber-500/10 transition-colors disabled:opacity-50"
-                >
-                  Re-index
-                </button>
-              )}
-
-              {!repo.isImported && (
-                <button
-                  onClick={() => handleImport(repo)}
-                  disabled={importingRepoId === repo.id}
-                  className="rounded-md border border-white/[0.08] px-3 py-1.5 text-[11px] font-medium text-neutral-300 hover:bg-white/[0.04] hover:border-accent/25 hover:text-accent transition-colors disabled:opacity-50"
-                >
-                  {importingRepoId === repo.id ? 'Importing...' : 'Import'}
-                </button>
-              )}
-            </div>
+            ))}
           </div>
-        ))}
+        )}
       </div>
 
       {importingRepoId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
           <div className="w-full max-w-sm mx-4 rounded-lg border border-white/[0.08] bg-[#0a0e14] shadow-lg p-5">
             <div className="flex items-center gap-3 mb-5">
               <div className="h-8 w-8 rounded-lg bg-white/[0.03] border border-white/[0.08] flex items-center justify-center">
@@ -415,6 +378,6 @@ export default function RepositoriesPage() {
           </div>
         </div>
       )}
-    </div>
+    </Modal>
   );
 }

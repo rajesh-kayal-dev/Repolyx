@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/lib/auth-context';
+import { useImportRepo } from '@/lib/import-repo-context';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { highlightCode } from '@/lib/code-highlighter';
@@ -86,6 +87,7 @@ export default function ChatWorkspacePage() {
   const [selectedModel, setSelectedModel] = useState(MODEL_OPTIONS[0]);
   const [isModelSelectorOpen, setIsModelSelectorOpen] = useState(false);
 
+  const { openImportRepo } = useImportRepo();
   const router = useRouter();
   const chatEndRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -386,13 +388,13 @@ export default function ChatWorkspacePage() {
           <p className="text-sm text-neutral-400 mb-6">
             You need to import and scan a GitHub repository before starting an AI Chat session.
           </p>
-          <a
-            href="/repositories"
+          <button
+            onClick={openImportRepo}
             className="inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-neutral-950 hover:bg-white transition-colors"
           >
             Import Repository
             <ArrowRight size={16} />
-          </a>
+          </button>
         </div>
       </div>
     );

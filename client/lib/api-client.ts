@@ -162,4 +162,92 @@ export const api = {
       });
     },
   },
+  debug: {
+    repositories: {
+      list() {
+        return request<{ repositories: import('./types').RepoHealthSummary[] }>("/api/debug/repositories");
+      },
+    },
+    scan(repositoryId: string) {
+      return request<{ incidents: import('./types').DebugIncident[], scanDuration: number }>(`/api/debug/scan/${repositoryId}`, {
+        method: "POST",
+      });
+    },
+    incidents: {
+      list() {
+        return request<{ incidents: any[] }>("/api/debug/incidents");
+      },
+      get(id: string) {
+        return request<{ incident: any }>(`/api/debug/incidents/${id}`);
+      },
+      create(data: {
+        title: string;
+        impactStatement?: string;
+        severity?: string;
+        service?: string;
+        deployVersion?: string;
+        errorRate?: string;
+        affectedUsers?: string;
+        repositoryId?: string;
+      }) {
+        return request<{ incident: any }>("/api/debug/incidents", {
+          method: "POST",
+          body: JSON.stringify(data),
+        });
+      },
+      analyze(id: string) {
+        return request<{ incident: any }>(`/api/debug/incidents/${id}/analyze`, {
+          method: "POST",
+        });
+      },
+      ask(id: string, question: string) {
+        return request<{ answer: string }>(`/api/debug/incidents/${id}/ask`, {
+          method: "POST",
+          body: JSON.stringify({ question }),
+        });
+      },
+      updateStatus(id: string, status: string) {
+        return request<{ incident: any }>(`/api/debug/incidents/${id}/status`, {
+          method: "PATCH",
+          body: JSON.stringify({ status }),
+        });
+      },
+      delete(id: string) {
+        return request<{ success: boolean }>(`/api/debug/incidents/${id}`, {
+          method: "DELETE",
+        });
+      },
+      createGitHubIssue(id: string) {
+        return request<{ issueUrl: string; issueNumber: number }>(
+          `/api/debug/incidents/${id}/github-issue`,
+          { method: "POST" }
+        );
+      },
+    },
+    logs: {
+      list(filters?: { level?: string; service?: string; limit?: number; incidentId?: string }) {
+        const params = new URLSearchParams();
+        if (filters?.level) params.set("level", filters.level);
+        if (filters?.service) params.set("service", filters.service);
+        if (filters?.limit) params.set("limit", String(filters.limit));
+        if (filters?.incidentId) params.set("incidentId", filters.incidentId);
+        const qs = params.toString();
+        return request<{ logs: any[] }>(`/api/debug/logs${qs ? `?${qs}` : ""}`);
+      },
+      add(data: {
+        incidentId?: string;
+        level: string;
+        message: string;
+        source?: string;
+        service?: string;
+        stackTrace?: string;
+        loggedAt?: string;
+      }) {
+        return request<{ log: any }>("/api/debug/logs", {
+          method: "POST",
+          body: JSON.stringify(data),
+        });
+      },
+    },
+  },
 };

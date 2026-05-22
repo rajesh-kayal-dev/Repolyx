@@ -16,6 +16,7 @@ model User {
   repositories      Repository[]
   chatSessions      ChatSession[]
   reviewSessions    ReviewSession[]
+  debugIncidents    DebugIncident[]
   createdAt         DateTime        @default(now())
 }
 
@@ -38,8 +39,11 @@ model Repository {
   dependencyCount Int                 @default(0)
   fileCount      Int                  @default(0)
   branchCount    Int                  @default(0)
+  lastScanAt     DateTime?
+  lastScanDuration Int?
   files          RepositoryFile[]
   events         RepositoryEvent[]
+  debugIncidents DebugIncident[]
   analyses       RepositoryAnalysis[]
   chatSessions   ChatSession[]
   aiContext      AIContext?
@@ -187,4 +191,51 @@ model ReviewSuggestion {
   lineEnd         Int?
   codeSnippet     String?
   createdAt       DateTime      @default(now())
+}
+
+model DebugIncident {
+  id               String      @id @default(cuid())
+  userId           String
+  user             User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  repositoryId     String?
+  repository       Repository? @relation(fields: [repositoryId], references: [id], onDelete: SetNull)
+  title            String
+  impactStatement  String?
+  severity         String      @default("medium") // critical | high | medium | low
+  status           String      @default("investigating") // investigating | identified | monitoring | resolved
+  source           String      @default("manual") // manual | auto-scan
+  service          String?
+  deployVersion    String?
+  errorRate        String?
+  affectedUsers    String?
+  aiSummary        String?
+  aiProblem        String?
+  aiImpact         String?
+  aiRecommendations Json?      // string[]
+  aiExplanation    String?     // legacy
+  aiFixSuggestion  String?     // legacy
+  aiConfidence     Int         @default(0) // 0-100
+  riskLevel        String?     // low | medium | high
+  affectedFiles    Json?       // string[]
+  relatedCommits   Json?       // { sha, message, author }[]
+  timelineEvents   Json?       // { type, title, detail, timestamp }[]
+  resolvedAt       DateTime?
+  logs             DebugLog[]
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+}
+
+model DebugLog {
+  id         String        @id @default(cuid())
+  incidentId String?
+  incident   DebugIncident? @relation(fields: [incidentId], references: [id], onDelete: SetNull)
+  userId     String
+  level      String        @default("info") // error | warn | info
+  message    String
+  source     String        @default("unknown")
+  service    String?
+  stackTrace String?
+  metadata   Json?
+  loggedAt   DateTime      @default(now())
+  createdAt  DateTime      @default(now())
 }

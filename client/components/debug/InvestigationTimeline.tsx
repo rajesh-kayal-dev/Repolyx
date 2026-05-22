@@ -1,55 +1,104 @@
-import { AlertTriangle, ArrowRight, CheckCircle2, Cpu, GitCommit, Server } from 'lucide-react';
+'use client';
 
-interface TimelineEvent {
-    type: 'deploy' | 'failure' | 'finding' | 'event';
-    title: string;
-    detail: string;
-    timestamp: string;
+import { AlertTriangle, CheckCircle2, GitCommit, Cpu, ArrowRight } from 'lucide-react';
+import { DebugIncident, DebugTimelineEvent } from '@/lib/types';
+
+interface InvestigationTimelineProps {
+    incident: DebugIncident;
 }
 
-const events: TimelineEvent[] = [
-    { type: 'deploy', title: 'Deployment v2.4.1 rolled out', detail: '3 services updated including api-gateway', timestamp: '10 min ago' },
-    { type: 'failure', title: 'Error rate spike detected', detail: '/api/scan returning 502 for 12% of requests', timestamp: '6 min ago' },
-    { type: 'finding', title: 'AI analysis completed', detail: 'Connection pool exhaustion identified as root cause', timestamp: '4 min ago' },
-    { type: 'event', title: 'Database connection pool at 95%', detail: 'Max connections reached; queue depth increasing', timestamp: '3 min ago' },
-    { type: 'finding', title: 'Fix recommended', detail: 'Increase pool size and add connection retry logic', timestamp: '1 min ago' },
-];
-
-const typeConfig = {
-    deploy: { icon: GitCommit, class: 'text-accent', line: 'bg-accent/30' },
-    failure: { icon: AlertTriangle, class: 'text-red-400', line: 'bg-red-400/30' },
-    finding: { icon: CheckCircle2, class: 'text-emerald-400', line: 'bg-emerald-400/30' },
-    event: { icon: Cpu, class: 'text-neutral-400', line: 'bg-white/[0.06]' },
+const typeConfig: Record<string, { icon: typeof GitCommit; dotClass: string; labelClass: string }> = {
+    deploy: {
+        icon: GitCommit,
+        dotClass: 'bg-accent/20 border-accent/30',
+        labelClass: 'text-accent',
+    },
+    failure: {
+        icon: AlertTriangle,
+        dotClass: 'bg-red-400/20 border-red-400/30',
+        labelClass: 'text-red-400',
+    },
+    finding: {
+        icon: CheckCircle2,
+        dotClass: 'bg-emerald-400/20 border-emerald-400/30',
+        labelClass: 'text-emerald-400',
+    },
+    event: {
+        icon: Cpu,
+        dotClass: 'bg-white/[0.04] border-white/[0.08]',
+        labelClass: 'text-neutral-400',
+    },
 };
 
-export function InvestigationTimeline() {
+function formatTimestamp(ts: string) {
+    const d = new Date(ts);
+    if (isNaN(d.getTime())) return ts; // already relative like "4 min ago"
+    const now = Date.now();
+    const diff = now - d.getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return `${mins} min ago`;
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+export function InvestigationTimeline({ incident }: InvestigationTimelineProps) {
+    const events: DebugTimelineEvent[] = Array.isArray(incident.timelineEvents)
+        ? incident.timelineEvents
+        : [];
+
+    if (events.length === 0) {
+        return (
+            <div>
+                <div className="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 className="text-sm font-semibold text-white">Investigation Timeline</h2>
+                        <p className="text-xs text-neutral-500 mt-0.5">Key events leading to this incident</p>
+                    </div>
+                </div>
+                <p className="text-xs text-neutral-600 py-4 text-center">
+                    No timeline events yet. Events are added automatically as AI investigates.
+                </p>
+            </div>
+        );
+    }
+
     return (
         <div>
             <div className="flex items-center justify-between mb-4">
                 <div>
                     <h2 className="text-sm font-semibold text-white">Investigation Timeline</h2>
-                    <p className="text-xs text-neutral-500 mt-0.5">Events leading to the current incident</p>
+                    <p className="text-xs text-neutral-500 mt-0.5">Key events leading to this incident</p>
                 </div>
+                <span className="text-xs text-neutral-600">{events.length} events</span>
             </div>
+
             <div className="relative">
-                {/* Vertical line */}
-                <div className="absolute left-[13px] top-2 bottom-2 w-px bg-white/[0.06]" />
+                {/* Vertical connector */}
+                <div className="absolute left-[13px] top-3 bottom-3 w-px bg-white/[0.05]" />
 
                 <div className="space-y-4">
                     {events.map((event, i) => {
-                        const config = typeConfig[event.type];
-                        const Icon = config.icon;
+                        const cfg = typeConfig[event.type] || typeConfig.event;
+                        const Icon = cfg.icon;
                         return (
-                            <div key={i} className="relative flex items-start gap-4 pl-1">
-                                <div className={`relative z-10 flex h-7 w-7 items-center justify-center rounded-full bg-[#050708] border border-white/[0.06] ${config.class}`}>
-                                    <Icon size={12} />
+                            <div key={i} className="relative flex items-start gap-3 pl-1">
+                                {/* Dot */}
+                                <div className={`relative z-10 flex h-[26px] w-[26px] items-center justify-center rounded-full border shrink-0 ${cfg.dotClass}`}>
+                                    <Icon size={11} className={cfg.labelClass} />
                                 </div>
+                                {/* Content */}
                                 <div className="flex-1 min-w-0 pt-0.5">
-                                    <div className="flex items-center gap-2">
-                                        <p className="text-sm font-medium text-neutral-200">{event.title}</p>
-                                        <span className="text-[11px] text-neutral-500">{event.timestamp}</span>
+                                    <div className="flex items-start justify-between gap-2">
+                                        <p className={`text-sm font-medium ${cfg.labelClass}`}>
+                                            {event.title}
+                                        </p>
+                                        <span className="text-[10px] text-neutral-600 shrink-0 pt-0.5">
+                                            {formatTimestamp(event.timestamp)}
+                                        </span>
                                     </div>
-                                    <p className="text-xs text-neutral-400 mt-0.5">{event.detail}</p>
+                                    <p className="text-xs text-neutral-500 mt-0.5 leading-relaxed">
+                                        {event.detail}
+                                    </p>
                                 </div>
                             </div>
                         );
