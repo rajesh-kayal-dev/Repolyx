@@ -1,51 +1,85 @@
-import { ChevronDown, GitBranch, Search, TerminalSquare } from 'lucide-react';
+'use client';
 
-export function DebugHeader() {
+import { Layers, Search, Sparkles, TerminalSquare, ArrowLeft } from 'lucide-react';
+
+interface DebugHeaderProps {
+    beginnerMode: boolean;
+    onToggleMode: () => void;
+    onScanAnother: () => void;
+    showScanButton: boolean;
+}
+
+export function DebugHeader({
+    beginnerMode,
+    onToggleMode,
+    onScanAnother,
+    showScanButton,
+}: DebugHeaderProps) {
     return (
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            {/* Left: Title + meta */}
             <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-400/10">
+                {showScanButton && (
+                    <button
+                        onClick={onScanAnother}
+                        className="mr-2 flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.06] bg-white/[0.02] text-neutral-400 hover:bg-white/[0.06] hover:text-white transition-all"
+                        title="Back to Repositories"
+                    >
+                        <ArrowLeft size={16} />
+                    </button>
+                )}
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-400/10 ring-1 ring-amber-400/20">
                     <TerminalSquare size={16} className="text-amber-400" />
                 </div>
                 <div>
                     <h1 className="text-lg font-semibold text-white">Debug Assistant</h1>
                     <div className="flex items-center gap-3 text-sm text-neutral-500 mt-0.5">
-                        <span className="flex items-center gap-1.5">
-                            <GitBranch size={14} />
-                            repolyx/api
-                            <ChevronDown size={12} />
-                        </span>
-                        <span className="text-neutral-600">·</span>
-                        <span className="flex items-center gap-1.5">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                            production
-                        </span>
-                        <span className="text-neutral-600">·</span>
-                        <span>2 active incidents</span>
+                        <span>AI-powered automated repository intelligence</span>
                     </div>
                 </div>
             </div>
-            <div className="flex items-center gap-2">
-                <div className="relative">
-                    <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-500 pointer-events-none" />
-                    <input
-                        type="search"
-                        placeholder="Search logs..."
-                        className="w-40 rounded-lg border border-white/[0.06] bg-white/[0.03] py-1.5 pl-8 pr-3 text-sm text-white outline-none placeholder:text-neutral-500 focus:border-white/[0.1] transition-colors"
-                    />
+
+            {/* Right: Controls */}
+            <div className="flex items-center gap-2 flex-wrap">
+                {/* Beginner / Developer mode toggle */}
+                <div className="flex items-center rounded-lg border border-white/[0.06] bg-white/[0.02] p-0.5">
+                    <button
+                        type="button"
+                        onClick={() => !beginnerMode && onToggleMode()}
+                        className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
+                            beginnerMode
+                                ? 'bg-accent/10 text-accent shadow-sm'
+                                : 'text-neutral-500 hover:text-neutral-300'
+                        }`}
+                    >
+                        <Sparkles size={11} />
+                        Beginner
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => beginnerMode && onToggleMode()}
+                        className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
+                            !beginnerMode
+                                ? 'bg-white/[0.06] text-neutral-200 shadow-sm'
+                                : 'text-neutral-500 hover:text-neutral-300'
+                        }`}
+                    >
+                        <Layers size={11} />
+                        Developer
+                    </button>
                 </div>
-                <button
-                    type="button"
-                    className="rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-1.5 text-sm font-medium text-neutral-400 hover:bg-white/[0.06] hover:text-neutral-200 transition-colors"
-                >
-                    Start investigation
-                </button>
-                <button
-                    type="button"
-                    className="rounded-lg bg-amber-400/10 px-3 py-1.5 text-sm font-medium text-amber-400 hover:bg-amber-400/20 transition-colors"
-                >
-                    Explain error
-                </button>
+
+                {/* Scan another repo button */}
+                {showScanButton && (
+                    <button
+                        type="button"
+                        onClick={onScanAnother}
+                        className="flex items-center gap-1.5 rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-neutral-400 hover:bg-white/[0.06] hover:text-neutral-200 transition-colors"
+                    >
+                        <Search size={12} />
+                        Scan Another Repo
+                    </button>
+                )}
             </div>
         </div>
     );

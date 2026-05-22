@@ -10,6 +10,7 @@ import repositoryRoutes from "./routes/repository.routes.js";
 import aiRoutes from "./modules/ai/routes/ai.routes.js";
 import reviewRoutes from "./modules/review/routes/review.routes.js";
 import dashboardRoutes from "./routes/dashboard.routes.js";
+import debugRoutes from "./modules/debug/routes/debug.routes.js";
 import { env } from "./config/env.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import PrismaSessionStore from "./database/sessionStore.js";
@@ -58,6 +59,7 @@ app.use("/api/repositories", repositoryRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/debug", debugRoutes);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {

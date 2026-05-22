@@ -306,3 +306,115 @@ export interface RepoWorkspace {
     authFlows: number;
   };
 }
+
+// ─── Debug Assistant Types ────────────────────────────────────────────────────
+
+export type DebugSeverity = 'critical' | 'high' | 'medium' | 'low';
+export type DebugStatus = 'investigating' | 'identified' | 'monitoring' | 'resolved';
+export type DebugLogLevel = 'error' | 'warn' | 'info';
+export type DebugRisk = 'low' | 'medium' | 'high';
+export type DebugTimelineType = 'deploy' | 'failure' | 'finding' | 'event';
+
+export interface DebugTimelineEvent {
+  type: DebugTimelineType;
+  title: string;
+  detail: string;
+  timestamp: string;
+}
+
+export interface DebugCommit {
+  sha: string;
+  message: string;
+  author: string;
+}
+
+export interface DebugIncident {
+  id: string;
+  userId: string;
+  repositoryId: string | null;
+  title: string;
+  impactStatement: string | null;
+  severity: DebugSeverity;
+  status: DebugStatus;
+  service: string | null;
+  deployVersion: string | null;
+  errorRate: string | null;
+  affectedUsers: string | null;
+  aiSummary?: string | null;
+  aiProblem?: string | null;
+  aiImpact?: string | null;
+  aiRecommendations?: string[] | null;
+  aiExplanation: string | null; // Legacy
+  aiFixSuggestion: string | null; // Legacy
+  aiConfidence: number;
+  riskLevel: DebugRisk | null;
+  affectedFiles: string[] | null;
+  relatedCommits: DebugCommit[] | null;
+  timelineEvents: DebugTimelineEvent[] | null;
+  resolvedAt: string | null;
+  logs?: DebugLog[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DebugLog {
+  id: string;
+  incidentId: string | null;
+  userId: string;
+  level: DebugLogLevel;
+  message: string;
+  source: string;
+  service: string | null;
+  stackTrace: string | null;
+  metadata: any;
+  loggedAt: string;
+  createdAt: string;
+}
+
+export interface DebugFix {
+  suggestion: string;
+  riskLevel: DebugRisk;
+  confidence: number;
+  affectedFiles: string[];
+}
+
+export type ScanLifecycleState = 'idle' | 'queued' | 'scanning' | 'analyzing' | 'completed' | 'failed';
+
+export interface DebugResult {
+  summary: string;
+  problem: string;
+  impact: string;
+  affectedFiles: string[];
+  recommendations: string[];
+  confidence: number;
+}
+
+export interface CreateIncidentForm {
+  title: string;
+  impactStatement?: string;
+  severity?: DebugSeverity;
+  service?: string;
+  deployVersion?: string;
+  errorRate?: string;
+  affectedUsers?: string;
+  repositoryId?: string;
+}
+
+export interface RepoHealthSummary {
+  id: string;
+  name: string;
+  fullName: string;
+  language: string | null;
+  lastScanAt: string | null;
+  incidentCount: number;
+  scanStatus: 'clean' | 'issues';
+  healthScore: 'Clean' | 'Warning' | 'Critical';
+  branchCount: number;
+  dependencyCount: number;
+  scanDuration?: number;
+}
+
+export interface ScanResult {
+  incidents: DebugIncident[];
+  scanDuration: number;
+}

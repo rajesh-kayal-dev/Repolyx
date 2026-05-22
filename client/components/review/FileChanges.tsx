@@ -79,7 +79,7 @@ export function FileChanges({ files }: FileChangesProps) {
                             {file.deletions > 0 && (
                                 <span className="text-[11px] text-red-400/70">-{file.deletions}</span>
                             )}
-                            {RiskIcon && <RiskIcon size={13} className={riskColors[file.risk] || ''} />}
+                            {RiskIcon && <RiskIcon size={13} className={riskColors[file.risk ?? ''] || ''} />}
                             {file.comments > 0 && (
                                 <span className="text-[11px] text-neutral-500">{file.comments} comments</span>
                             )}

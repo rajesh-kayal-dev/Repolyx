@@ -8,7 +8,6 @@ interface InfrastructureStatusProps {
     incident: DebugIncident | null;
 }
 
-// Infer service health from incident data
 function deriveServices(incident: DebugIncident | null) {
     const base = [
         { name: 'API Gateway', key: 'api-gateway' },
@@ -50,7 +49,6 @@ export function InfrastructureStatus({ incident }: InfrastructureStatusProps) {
 
     return (
         <div>
-            {/* Collapsible header */}
             <button
                 type="button"
                 onClick={() => setExpanded((e) => !e)}
@@ -72,7 +70,6 @@ export function InfrastructureStatus({ incident }: InfrastructureStatusProps) {
                 )}
             </button>
 
-            {/* Service list */}
             {expanded && (
                 <div className="mt-4 rounded-xl border border-white/[0.06] divide-y divide-white/[0.04] overflow-hidden">
                     {services.map((svc) => (
