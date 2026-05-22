@@ -6,6 +6,7 @@ import { aiService } from "../modules/ai/services/ai.service.js";
 import { contextEngine } from "../modules/ai/context/context.engine.js";
 import { promptTemplates } from "../modules/ai/prompts/templates.js";
 import { generateCompletion } from "../modules/ai/providers/index.js";
+import { redisCache } from "../modules/ai/cache/redis.service.js";
 import { eventService } from "../services/event.service.js";
 import prisma from "../database/prisma.js";
 import logger from "../utils/logger.js";
@@ -133,7 +134,93 @@ export const importAndScanRepository = async (req, res, next) => {
       });
     }
 
+    const existingRepo = await prisma.repository.findUnique({
+      where: { githubRepoId: String(repoData.id) },
+    });
+
+    if (existingRepo) {
+      const lockKey = redisCache.buildScanLockKey(existingRepo.id);
+      const lock = await redisCache.acquireLock(lockKey, 120);
+      if (!lock) {
+        return res.status(409).json({
+          success: false,
+          message: "Repository is currently being scanned. Please wait.",
+        });
+      }
+
+      if (existingRepo.scanStatus === "scanning") {
+        await redisCache.releaseLock(lockKey);
+        return res.status(409).json({
+          success: false,
+          message: "Repository is already being scanned.",
+        });
+      }
+
+      if (existingRepo.isIndexed && existingRepo.scanStatus === "completed") {
+        await eventService.createEvent(existingRepo.id, "indexed", "Rescanning repository...");
+      }
+
+      await prisma.repository.update({
+        where: { id: existingRepo.id },
+        data: { scanStatus: "scanning" },
+      });
+
+      const repo = existingRepo;
+      const [owner, repoName] = repo.fullName.split("/");
+      const targetBranch = branch || repo.defaultBranch || "HEAD";
+
+      try {
+        const scanResult = await scannerService.scanRepository(
+          req.user.githubAccessToken, owner, repoName, targetBranch
+        );
+
+        await prisma.repositoryFile.deleteMany({ where: { repositoryId: repo.id } });
+
+        if (scanResult.files.length > 0) {
+          await prisma.repositoryFile.createMany({
+            data: scanResult.files.map(f => ({
+              repositoryId: repo.id, path: f.path, name: f.name,
+              extension: f.extension, size: f.size, type: f.type,
+              isImportant: f.isImportant || false,
+              modulePurpose: f.modulePurpose || null,
+            })),
+          });
+        }
+
+        await prisma.repository.update({
+          where: { id: repo.id },
+          data: {
+            scanStatus: "completed", isIndexed: true,
+            fileCount: scanResult.summary.totalFiles,
+            dependencyCount: scanResult.summary.totalDependencies,
+            branchCount: scanResult.summary.totalBranches,
+            techStack: scanResult.frameworks.join(", ") || repo.language,
+          },
+        });
+
+        await eventService.createEvent(repo.id, "indexed",
+          `Re-scanned ${scanResult.summary.totalFiles} files with ${scanResult.summary.totalDependencies} dependencies`
+        );
+
+        await redisCache.releaseLock(lockKey);
+
+        const fullRepo = await prisma.repository.findUnique({
+          where: { id: repo.id },
+          include: { files: true, events: { orderBy: { createdAt: "desc" }, take: 20 }, analyses: { orderBy: { createdAt: "desc" } } },
+        });
+
+        return res.json({ success: true, repository: fullRepo, scanResult: { summary: scanResult.summary, frameworks: scanResult.frameworks } });
+      } catch (scanError) {
+        await prisma.repository.update({ where: { id: repo.id }, data: { scanStatus: "failed" } });
+        await redisCache.releaseLock(lockKey);
+        throw scanError;
+      }
+    }
+
     const savedRepo = await repositoryService.importRepository(req.user.id, repoData);
+
+    const lockKey = redisCache.buildScanLockKey(savedRepo.id);
+    await redisCache.acquireLock(lockKey, 120);
 
     await eventService.createEvent(
       savedRepo.id,
@@ -216,6 +303,8 @@ export const importAndScanRepository = async (req, res, next) => {
 
     await eventService.createEvent(savedRepo.id, "summary_generated", "AI repository summary generated");
 
+    await redisCache.releaseLock(lockKey);
+
     const fullRepo = await prisma.repository.findUnique({
       where: { id: savedRepo.id },
       include: {
@@ -261,6 +350,24 @@ export const scanRepository = async (req, res, next) => {
 
     if (!req.user || !req.user.githubAccessToken) {
       return res.status(401).json({ success: false, message: "GitHub token not found" });
+    }
+
+    const lockKey = redisCache.buildScanLockKey(id);
+    const lock = await redisCache.acquireLock(lockKey, 120);
+
+    if (!lock) {
+      return res.status(409).json({
+        success: false,
+        message: "Repository is currently being scanned. Please wait.",
+      });
+    }
+
+    if (repo.scanStatus === "scanning") {
+      await redisCache.releaseLock(lockKey);
+      return res.status(409).json({
+        success: false,
+        message: "Repository is already being scanned.",
+      });
     }
 
     await prisma.repository.update({
@@ -316,6 +423,8 @@ export const scanRepository = async (req, res, next) => {
       { totalFiles: scanResult.summary.totalFiles, totalDeps: scanResult.summary.totalDependencies }
     );
 
+    await redisCache.releaseLock(lockKey);
+
     res.json({
       success: true,
       scanResult: {
@@ -334,6 +443,8 @@ export const scanRepository = async (req, res, next) => {
         where: { id: req.params.id },
         data: { scanStatus: "failed" },
       });
+      const lockKey2 = redisCache.buildScanLockKey(req.params.id);
+      await redisCache.releaseLock(lockKey2);
     } catch {}
     next(error);
   }

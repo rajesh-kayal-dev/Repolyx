@@ -140,10 +140,10 @@ export const api = {
         });
       },
     },
-    chat(sessionId: string, message: string, activeFile?: string, provider?: string, model?: string) {
+    chat(sessionId: string, message: string, activeFile?: string, provider?: string, model?: string, mode?: string, contextScope?: string) {
       return request<{ userMessage: any; aiMessage: any; title: string; analysis?: any }>("/api/ai/chat", {
         method: "POST",
-        body: JSON.stringify({ sessionId, message, activeFile, provider, model }),
+        body: JSON.stringify({ sessionId, message, activeFile, provider, model, mode, contextScope }),
       });
     },
     getPrompts(repositoryId: string) {

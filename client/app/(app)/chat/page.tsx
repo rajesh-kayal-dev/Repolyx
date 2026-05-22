@@ -57,6 +57,8 @@ export default function ChatWorkspacePage() {
   const [fileSearchQuery, setFileSearchQuery] = useState('');
 
   const [messageAnalysis, setMessageAnalysis] = useState<Record<string, any>>({});
+  const [chatMode, setChatMode] = useState<'developer' | 'beginner'>('developer');
+  const [contextScope, setContextScope] = useState<'repo' | 'file' | 'folder' | 'dependencies'>('repo');
 
   const [suggestedPrompts, setSuggestedPrompts] = useState<string[]>([
     'Explain backend flow',
@@ -163,6 +165,25 @@ export default function ChatWorkspacePage() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isAiThinking) {
+      const statuses = [
+        'Scanning repository files...',
+        'Analyzing imports...',
+        'Tracing dependencies...',
+        'Checking authorization flows...',
+        'Generating explanation...'
+      ];
+      let i = 0;
+      interval = setInterval(() => {
+        i = (i + 1) % statuses.length;
+        setAnalysisStatus(statuses[i]);
+      }, 1500);
+    }
+    return () => clearInterval(interval);
+  }, [isAiThinking]);
+
   const loadSessions = async (repoId: string) => {
     try {
       setIsSessionsLoading(true);
@@ -265,7 +286,7 @@ export default function ChatWorkspacePage() {
     setMessages((prev: any[]) => [...prev, mockUserMsg]);
 
     try {
-      const chatRes = await api.ai.chat(currentSession.id, textToSend, activeFile || undefined, selectedModel.provider, selectedModel.id);
+      const chatRes = await api.ai.chat(currentSession.id, textToSend, activeFile || undefined, selectedModel.provider, selectedModel.id, chatMode, contextScope);
 
       if (chatRes.analysis) {
         setLastAnalysis(chatRes.analysis);
@@ -353,7 +374,7 @@ export default function ChatWorkspacePage() {
     setAnalysisStatus('Regenerating response...');
 
     try {
-      const chatRes = await api.ai.chat(activeSession.id, userMsg.content, activeFile || undefined, selectedModel.provider, selectedModel.id);
+      const chatRes = await api.ai.chat(activeSession.id, userMsg.content, activeFile || undefined, selectedModel.provider, selectedModel.id, chatMode, contextScope);
       loadMessages(activeSession.id);
     } catch (err) {
       console.error('Failed to regenerate:', err);
@@ -846,15 +867,45 @@ export default function ChatWorkspacePage() {
                   </span>
                 )}
               </div>
-              <div ref={modelSelectorRef} className="relative">
-                <button
-                  onClick={() => setIsModelSelectorOpen(!isModelSelectorOpen)}
-                  className="flex items-center gap-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02] px-2 py-1 text-[10px] text-neutral-400 hover:text-neutral-200 hover:bg-white/[0.04] transition-all"
-                >
-                  <Brain size={10} className="text-accent" />
-                  <span className="max-w-[90px] truncate">{selectedModel.label}</span>
-                  <ChevronDown size={10} />
-                </button>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center bg-white/[0.02] border border-white/[0.06] rounded-lg overflow-hidden p-0.5">
+                  <button
+                    onClick={() => setChatMode('beginner')}
+                    className={`px-2 py-1 text-[9px] font-medium transition-colors rounded ${chatMode === 'beginner' ? 'bg-accent/15 text-white' : 'text-neutral-500 hover:text-neutral-300'}`}
+                  >
+                    Beginner
+                  </button>
+                  <button
+                    onClick={() => setChatMode('developer')}
+                    className={`px-2 py-1 text-[9px] font-medium transition-colors rounded ${chatMode === 'developer' ? 'bg-accent/15 text-white' : 'text-neutral-500 hover:text-neutral-300'}`}
+                  >
+                    Developer
+                  </button>
+                </div>
+                
+                <div className="relative">
+                  <select
+                    value={contextScope}
+                    onChange={(e) => setContextScope(e.target.value as any)}
+                    className="appearance-none rounded-lg border border-white/[0.06] bg-white/[0.02] px-2 py-1 pr-5 text-[10px] text-neutral-400 outline-none focus:border-accent transition-colors"
+                  >
+                    <option value="repo" className="bg-neutral-900">Entire Repository</option>
+                    <option value="file" className="bg-neutral-900">Current File</option>
+                    <option value="folder" className="bg-neutral-900">Selected Folder</option>
+                    <option value="dependencies" className="bg-neutral-900">Dependencies Only</option>
+                  </select>
+                  <ChevronDown size={10} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-neutral-500 pointer-events-none" />
+                </div>
+
+                <div ref={modelSelectorRef} className="relative ml-1">
+                  <button
+                    onClick={() => setIsModelSelectorOpen(!isModelSelectorOpen)}
+                    className="flex items-center gap-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02] px-2 py-1 text-[10px] text-neutral-400 hover:text-neutral-200 hover:bg-white/[0.04] transition-all"
+                  >
+                    <Brain size={10} className="text-accent" />
+                    <span className="max-w-[90px] truncate">{selectedModel.label}</span>
+                    <ChevronDown size={10} />
+                  </button>
 
                 {isModelSelectorOpen && (
                   <div className="absolute right-0 bottom-full mb-1 w-56 rounded-xl border border-white/[0.08] bg-neutral-900 p-1.5 shadow-elevated z-50 animate-fade-in">
@@ -884,6 +935,7 @@ export default function ChatWorkspacePage() {
 
       </div>
 
+    </div>
     </div>
   );
 }

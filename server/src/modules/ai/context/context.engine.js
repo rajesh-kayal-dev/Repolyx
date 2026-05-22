@@ -1,12 +1,43 @@
 import prisma from "../../../database/prisma.js";
 import { scannerService } from "../../../services/scanner.service.js";
 import { contextSizeLimiter } from "../utils/context-limiter.js";
+import { redisCache } from "../cache/redis.service.js";
 import logger from "../../../utils/logger.js";
 import fs from "fs";
 import path from "path";
 
 const CACHE_DIR = path.join(process.cwd(), ".repolyx-cache");
 const CACHE_TTL = 5 * 60 * 1000;
+
+function getCacheKey(repositoryId, type) {
+  return `${repositoryId}-${type}`;
+}
+
+function readFileCache(key) {
+  try {
+    if (!fs.existsSync(CACHE_DIR)) fs.mkdirSync(CACHE_DIR, { recursive: true });
+    const filePath = path.join(CACHE_DIR, `${key}.json`);
+    if (!fs.existsSync(filePath)) return null;
+    const data = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+    if (Date.now() - data.timestamp > CACHE_TTL) {
+      fs.unlinkSync(filePath);
+      return null;
+    }
+    return data.value;
+  } catch {
+    return null;
+  }
+}
+
+function writeFileCache(key, value) {
+  try {
+    if (!fs.existsSync(CACHE_DIR)) fs.mkdirSync(CACHE_DIR, { recursive: true });
+    const filePath = path.join(CACHE_DIR, `${key}.json`);
+    fs.writeFileSync(filePath, JSON.stringify({ timestamp: Date.now(), value }));
+  } catch (err) {
+    logger.warn(`Failed to write cache for ${key}: ${err.message}`);
+  }
+}
 
 const INTENT_KEYWORD_MAP = {
   auth: ["auth", "passport", "jwt", "session", "login", "oauth", "signin", "signup", "cookie", "middleware", "permission", "role", "guard", "token", "bearer", "credentials", "protect", "authorize", "verify"],
@@ -48,40 +79,15 @@ const FILE_TYPE_IMPORTANCE = {
   ".md": 1, ".css": 1, ".scss": 1, ".sass": 1,
 };
 
-function ensureCacheDir() {
-  if (!fs.existsSync(CACHE_DIR)) {
-    fs.mkdirSync(CACHE_DIR, { recursive: true });
-  }
-}
-
-function getCacheKey(repositoryId, type) {
-  return `${repositoryId}-${type}`;
-}
-
-function readCache(key) {
-  try {
-    ensureCacheDir();
-    const filePath = path.join(CACHE_DIR, `${key}.json`);
-    if (!fs.existsSync(filePath)) return null;
-    const data = JSON.parse(fs.readFileSync(filePath, "utf-8"));
-    if (Date.now() - data.timestamp > CACHE_TTL) {
-      fs.unlinkSync(filePath);
-      return null;
-    }
-    return data.value;
-  } catch {
-    return null;
-  }
+async function readCache(key) {
+  const redisResult = await redisCache.get(key);
+  if (redisResult !== null) return redisResult;
+  return readFileCache(key);
 }
 
 function writeCache(key, value) {
-  try {
-    ensureCacheDir();
-    const filePath = path.join(CACHE_DIR, `${key}.json`);
-    fs.writeFileSync(filePath, JSON.stringify({ timestamp: Date.now(), value }));
-  } catch (err) {
-    logger.warn(`Failed to write cache for ${key}: ${err.message}`);
-  }
+  redisCache.set(key, value, 3600);
+  writeFileCache(key, value);
 }
 
 export const contextEngine = {
@@ -197,9 +203,9 @@ export const contextEngine = {
     return [...new Set(exports)];
   },
 
-  async buildFileIndex(repositoryId, githubAccessToken, owner, repo, branch) {
+  async buildFileIndexAsync(repositoryId, githubAccessToken, owner, repo, branch) {
     const cacheKey = getCacheKey(repositoryId, "file-index");
-    const cached = readCache(cacheKey);
+    const cached = await readCache(cacheKey);
     if (cached) return cached;
 
     const repository = await prisma.repository.findUnique({
@@ -254,6 +260,10 @@ export const contextEngine = {
 
     writeCache(cacheKey, fileIndex);
     return fileIndex;
+  },
+
+  buildFileIndex(repositoryId, githubAccessToken, owner, repo, branch) {
+    return this.buildFileIndexAsync(repositoryId, githubAccessToken, owner, repo, branch);
   },
 
   async buildContext(repositoryId, githubAccessToken, options = {}) {
@@ -352,7 +362,7 @@ export const contextEngine = {
         })
       );
 
-      const fileIndex = await this.buildFileIndex(repositoryId, githubAccessToken, owner, repoName, branch);
+      const fileIndex = await this.buildFileIndexAsync(repositoryId, githubAccessToken, owner, repoName, branch);
 
       const analysisMetadata = {
         detectedIntents,

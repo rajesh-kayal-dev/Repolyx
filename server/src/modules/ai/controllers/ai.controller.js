@@ -84,7 +84,7 @@ export const deleteSession = async (req, res, next) => {
 
 export const chat = async (req, res, next) => {
   try {
-    const { sessionId, message, activeFile, provider, model } = chatSchema.parse(req.body);
+    const { sessionId, message, activeFile, provider, model, mode, contextScope } = chatSchema.parse(req.body);
     const userId = req.user.id;
     const githubAccessToken = req.user.githubAccessToken;
 
@@ -96,7 +96,7 @@ export const chat = async (req, res, next) => {
     }
 
     const result = await aiService.queryChat(
-      sessionId, message, activeFile, userId, githubAccessToken, provider, model
+      sessionId, message, activeFile, userId, githubAccessToken, provider, model, mode, contextScope
     );
 
     res.json({

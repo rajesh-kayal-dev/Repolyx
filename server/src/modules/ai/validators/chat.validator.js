@@ -33,6 +33,8 @@ export const chatSchema = z.object({
   activeFile: z.string().max(500).optional(),
   provider: z.enum(["freemodel", "gemini", "openrouter"]).optional(),
   model: z.string().max(100).optional(),
+  mode: z.enum(["beginner", "developer"]).optional().default("developer"),
+  contextScope: z.enum(["repo", "file", "folder", "dependencies"]).optional().default("repo"),
 });
 
 export const getPromptsSchema = z.object({

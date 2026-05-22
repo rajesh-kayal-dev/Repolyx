@@ -5,7 +5,9 @@ import { promptTemplates } from "../prompts/templates.js";
 import { chatMemory } from "../memory/chat-memory.js";
 import { sanitizer } from "../utils/sanitizer.js";
 import { contextSizeLimiter } from "../utils/context-limiter.js";
+import { redisCache } from "../cache/redis.service.js";
 import logger from "../../../utils/logger.js";
+import { runSimulator } from "./simulator.graph.js";
 
 function generateFallbackResponse(context, userMessage) {
   const { analysis, repository, relatedFiles, activeFile } = context;
@@ -222,13 +224,21 @@ export const aiService = {
     return chatMemory.deleteSession(sessionId, userId);
   },
 
-  async queryChat(sessionId, userMessage, activeFilePath, userId, githubAccessToken, selectedProvider, selectedModel) {
+  async queryChat(sessionId, userMessage, activeFilePath, userId, githubAccessToken, selectedProvider, selectedModel, mode = "developer", contextScope = "repo") {
+    const startTime = Date.now();
     try {
       const session = await prisma.chatSession.findFirst({
         where: { id: sessionId, userId },
       });
       if (!session) {
         throw new Error("Chat session not found or unauthorized");
+      }
+
+      const rateLimitResult = await redisCache.incrementRateLimit(
+        `chat:${userId}`, 30, 60
+      );
+      if (!rateLimitResult.allowed) {
+        throw new Error(`Rate limit exceeded. Try again in ${rateLimitResult.resetIn} seconds.`);
       }
 
       const sanitizedMessage = sanitizer.sanitizePrompt(userMessage);
@@ -238,15 +248,49 @@ export const aiService = {
         contextSizeLimiter.getMaxMessageHistory()
       );
 
+      const cacheKey = redisCache.buildAiCacheKey(
+        session.repositoryId, sanitizedMessage, mode
+      );
+      const cachedResponse = await redisCache.get(cacheKey);
+
+      if (cachedResponse && messageHistory.length === 0) {
+        logger.info(`Using cached AI response for "${sanitizedMessage.substring(0, 50)}..."`);
+        const savedUserMsg = await chatMemory.saveUserMessage(sessionId, sanitizedMessage);
+        const savedAiMsg = await chatMemory.saveAiMessage(
+          sessionId, cachedResponse.text, "cache", cachedResponse.model
+        );
+
+        let newTitle = session.title;
+        if (
+          (session.title === "New AI Conversation" || session.title === "New conversation") &&
+          messageHistory.length === 0
+        ) {
+          newTitle = sanitizedMessage.split(" ").slice(0, 6).join(" ") + "...";
+          await chatMemory.updateSessionTitle(sessionId, newTitle);
+        }
+
+        return {
+          userMessage: savedUserMsg,
+          aiMessage: savedAiMsg,
+          title: newTitle,
+          analysis: {
+            cached: true,
+            provider: "cache",
+            model: cachedResponse.model,
+            mode,
+          },
+        };
+      }
+
       const context = await contextEngine.buildContext(
         session.repositoryId,
         githubAccessToken,
         { activeFilePath, userMessage: sanitizedMessage }
       );
 
-      const formattedContext = promptTemplates.formatContext(context);
+      const formattedContext = promptTemplates.formatContext(context, mode);
       const limitedContext = sanitizer.sanitizeContextSize(formattedContext);
-      const systemInstruction = `${promptTemplates.systemPrompt}\n\n${limitedContext}`;
+      const systemInstruction = `${promptTemplates.getSystemPrompt(mode)}\n\n${limitedContext}`;
 
       const apiMessages = [
         ...messageHistory.map(msg => ({
@@ -269,19 +313,36 @@ export const aiService = {
       };
 
       try {
-        aiResult = await generateCompletion(apiMessages, completionOptions);
-        responseText = aiResult.text;
+        const simResult = await runSimulator(sanitizedMessage, context, mode);
+        
+        if (simResult && simResult.finalResponse && simResult.finalResponse !== "STANDARD_CHAT_FALLBACK") {
+          logger.info("Using LangGraph Simulator response.");
+          responseText = simResult.finalResponse;
+          aiResult = { text: responseText, provider: "simulator", model: "langgraph" };
+        } else {
+          aiResult = await generateCompletion(apiMessages, completionOptions);
+          responseText = aiResult.text;
 
-        if (sanitizer.isGenericResponse(responseText)) {
-          logger.warn(`AI returned generic response for "${sanitizedMessage.substring(0, 50)}...", using fallback`);
-          responseText = generateFallbackResponse(context, sanitizedMessage);
-          aiResult.text = responseText;
+          if (sanitizer.isGenericResponse(responseText)) {
+            logger.warn(`AI returned generic response for "${sanitizedMessage.substring(0, 50)}...", using fallback`);
+            responseText = generateFallbackResponse(context, sanitizedMessage);
+            aiResult.text = responseText;
+          }
         }
       } catch (error) {
         logger.error(`AI provider failed for "${sanitizedMessage.substring(0, 50)}...", using fallback response`);
         responseText = generateFallbackResponse(context, sanitizedMessage);
         aiResult = { text: responseText, provider: "fallback", model: "fallback" };
       }
+
+      const elapsed = Date.now() - startTime;
+      logger.info(`AI response generated in ${elapsed}ms for session ${sessionId}`);
+
+      await redisCache.set(cacheKey, {
+        text: responseText,
+        provider: aiResult.provider,
+        model: aiResult.model,
+      }, 3600);
 
       const savedAiMsg = await chatMemory.saveAiMessage(
         sessionId, responseText, aiResult.provider, aiResult.model
@@ -308,6 +369,8 @@ export const aiService = {
           referencedFiles,
           provider: aiResult.provider || "freemodel",
           model: aiResult.model || "claude-sonnet-4-6",
+          mode,
+          elapsed,
         },
       };
     } catch (error) {
@@ -341,11 +404,26 @@ export const aiService = {
   },
 
   async generateSuggestedPrompts(repositoryId) {
+    const cacheKey = `prompts:${repositoryId}`;
+    const cached = await redisCache.get(cacheKey);
+    if (cached) {
+      logger.info(`Using cached suggested prompts for repo ${repositoryId}`);
+      return cached;
+    }
+
+    const defaultPrompts = [
+      "How is authentication implemented?",
+      "Explain the API routing structure",
+      "What database models exist?",
+      "How is middleware structured?",
+      "Explain the project folder layout",
+    ];
+
     try {
       const repository = await prisma.repository.findUnique({
         where: { id: repositoryId },
       });
-      if (!repository) throw new Error("Repository not found");
+      if (!repository) return defaultPrompts;
 
       const prompt = promptTemplates.suggestedPromptsPrompt(
         {
@@ -367,29 +445,19 @@ export const aiService = {
         if (jsonMatch) {
           const suggestions = JSON.parse(jsonMatch[0]);
           if (Array.isArray(suggestions) && suggestions.length > 0) {
-            return suggestions.slice(0, 5);
+            const result = suggestions.slice(0, 5);
+            await redisCache.set(cacheKey, result, 1800);
+            return result;
           }
         }
       } catch (parseErr) {
         logger.warn("Failed to parse AI suggestions JSON:", parseErr);
       }
 
-      return [
-        "How is authentication implemented?",
-        "Explain the API routing structure",
-        "What database models exist?",
-        "How is middleware structured?",
-        "Explain the project folder layout",
-      ];
+      return defaultPrompts;
     } catch (error) {
       logger.error("Error generating suggested prompts:", error);
-      return [
-        "How is authentication implemented?",
-        "Explain the API routing structure",
-        "What database models exist?",
-        "How is middleware structured?",
-        "Explain the project folder layout",
-      ];
+      return defaultPrompts;
     }
   },
 };
