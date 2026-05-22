@@ -87,7 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (token) {
         setToken(token);
         window.history.replaceState({}, '', window.location.pathname);
-        setLoading(false);
+        checkAuth();
         return;
       }
     }

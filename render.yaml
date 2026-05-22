@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: repolyx-backend
+    runtime: node
+    repo: https://github.com/rajesh-kayal-dev/Repolyx
+    plan: free
+    region: singapore
+    buildCommand: npm install && npx prisma generate
+    startCommand: npm start
+    healthCheckPath: /api/health
+    rootDir: server
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_URL
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: GITHUB_CLIENT_ID
+        sync: false
+      - key: GITHUB_CLIENT_SECRET
+        sync: false
+      - key: FREEMODEL_API_KEY
+        sync: false
+      - key: FREEMODEL_BASE_URL
+        value: https://cc.freemodel.dev
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: APIFY_API_KEY
+        sync: false

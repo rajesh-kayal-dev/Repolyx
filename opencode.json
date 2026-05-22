@@ -25,6 +25,16 @@
       "type": "remote",
       "url": "https://mcp.vercel.com",
       "enabled": true
+    },
+    "render": {
+      "type": "local",
+      "command": ["cmd", "/c", "npx", "-y", "mcp-remote", "https://mcp.render.com/mcp", "--header", "Authorization: Bearer rnd_D6xn0kaQL0iPq3dtXf77GXBCbiHD"],
+      "enabled": true
+    },
+    "filesystem": {
+      "type": "local",
+      "command": ["cmd", "/c", "npx", "-y", "@modelcontextprotocol/server-filesystem", "D:\\AI Projects\\Repolyx"],
+      "enabled": true
     }
   }
 }
