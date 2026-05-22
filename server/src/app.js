@@ -22,10 +22,14 @@ app.use(helmet());
 app.use(morgan("dev"));
 
 // 2. CORS configuration (must allow credentials and resolve frontend origin from env)
+const allowedOrigins = env.FRONTEND_URL.split(",").map((o) => o.trim());
 app.use(
   cors({
     credentials: true,
-    origin: env.FRONTEND_URL,
+    origin: (origin, cb) => {
+      if (!origin || allowedOrigins.some((o) => origin.startsWith(o))) return cb(null, true);
+      cb(null, false);
+    },
   })
 );
 
@@ -44,6 +48,7 @@ app.use(
     cookie: {
       httpOnly: true,
       secure: env.NODE_ENV === "production",
+      sameSite: env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
     },
   })
