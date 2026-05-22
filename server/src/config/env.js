@@ -7,7 +7,7 @@ dotenv.config();
 const envSchema = z.object({
   PORT: z.string().transform((val) => parseInt(val, 10)).default("5000"),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
-  FRONTEND_URL: z.string().url().default("http://localhost:3000"),
+  FRONTEND_URL: z.string().default("http://localhost:3000"),
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
   JWT_SECRET: z.string().min(8, "JWT_SECRET must be at least 8 characters"),
   SESSION_SECRET: z.string().min(8, "SESSION_SECRET must be at least 8 characters").default("temporary_session_secret_12345"),
