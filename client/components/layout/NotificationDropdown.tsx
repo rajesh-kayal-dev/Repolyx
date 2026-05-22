@@ -96,6 +96,7 @@ export function NotificationDropdown() {
   };
 
   const getGithubUrl = (n: Notification) => {
+    if (!n.url) return `https://github.com/${n.repository}`;
     const parts = n.url.split('/');
     const type = parts.includes('pulls') ? 'pull' : 'issues';
     const issueNumber = parts[parts.length - 1];

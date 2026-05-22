@@ -155,7 +155,7 @@ export function PlatformShell({ children }: { children: ReactNode }) {
                                 >
                                     <GitBranch size={14} className="text-neutral-500" />
                                     <span className="hidden lg:inline">{activeRepo.name}</span>
-                                    <span className="lg:hidden">{activeRepo.name.split('/')[1]}</span>
+                                    <span className="lg:hidden">{activeRepo.name?.split('/')[1] || activeRepo.name}</span>
                                     <ChevronDown size={14} className="text-neutral-500" />
                                 </button>
 
