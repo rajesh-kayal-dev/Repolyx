@@ -1,14 +1,25 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
+
+const TOKEN_KEY = "repolyx_token";
+
+function getToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(TOKEN_KEY);
+}
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const token = getToken();
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const url = `${API_URL}${path}`;
   const res = await fetch(url, {
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
     ...options,
+    headers: { ...headers, ...(options.headers as Record<string, string> || {}) },
   });
 
   const data = await res.json();

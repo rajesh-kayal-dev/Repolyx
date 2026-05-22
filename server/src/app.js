@@ -2,8 +2,6 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
-import cookieParser from "cookie-parser";
-import session from "express-session";
 import passport from "./config/passport.js";
 import authRoutes from "./routes/auth.routes.js";
 import repositoryRoutes from "./routes/repository.routes.js";
@@ -13,7 +11,6 @@ import dashboardRoutes from "./routes/dashboard.routes.js";
 import debugRoutes from "./modules/debug/routes/debug.routes.js";
 import { env } from "./config/env.js";
 import { errorHandler } from "./middleware/errorHandler.js";
-import PrismaSessionStore from "./database/sessionStore.js";
 
 const app = express();
 
@@ -36,27 +33,9 @@ app.use(
 // 3. Request parsing
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
 
-// 4. Session management (required by Passport session strategy)
-app.use(
-  session({
-    store: new PrismaSessionStore(),
-    secret: env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      httpOnly: true,
-      secure: env.NODE_ENV === "production",
-      sameSite: env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    },
-  })
-);
-
-// 5. Initialize Passport and session support
+// 4. Initialize Passport (JWT-based, no sessions)
 app.use(passport.initialize());
-app.use(passport.session());
 
 // 6. Routes
 app.use("/api/auth", authRoutes);

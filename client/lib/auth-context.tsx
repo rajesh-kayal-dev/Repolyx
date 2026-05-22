@@ -1,8 +1,9 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { env } from './env';
+
+const TOKEN_KEY = 'repolyx_token';
 
 export interface User {
   id: string;
@@ -22,20 +23,40 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function getToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+function setToken(token: string) {
+  localStorage.setItem(TOKEN_KEY, token);
+}
+
+function removeToken() {
+  localStorage.removeItem(TOKEN_KEY);
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
 
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
+    const token = getToken();
+    if (!token) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
+
     try {
-      const response = await fetch(`${env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
+      const response = await fetch(`/api/auth/me`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
-        credentials: 'include',
       });
 
       if (response.ok) {
@@ -44,47 +65,54 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(data.user);
         } else {
           setUser(null);
+          removeToken();
         }
       } else {
         setUser(null);
+        removeToken();
       }
     } catch (error) {
       console.error('Error fetching auth status:', error);
       setUser(null);
+      removeToken();
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get('token');
+      if (token) {
+        setToken(token);
+        window.history.replaceState({}, '', window.location.pathname);
+        setLoading(false);
+        return;
+      }
+    }
+    checkAuth();
+  }, [checkAuth]);
 
   const logout = async () => {
     try {
-      setLoading(true);
-      const response = await fetch(`${env.NEXT_PUBLIC_API_URL}/api/auth/logout`, {
+      const token = getToken();
+      await fetch(`/api/auth/logout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
-        credentials: 'include',
       });
-
-      if (response.ok) {
-        setUser(null);
-        router.push('/');
-      } else {
-        console.error('Logout failed');
-      }
     } catch (error) {
       console.error('Error logging out:', error);
     } finally {
-      setLoading(false);
+      removeToken();
+      setUser(null);
+      router.push('/');
     }
   };
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  // Client-side authentication guard redirects
   useEffect(() => {
     if (loading) return;
 
@@ -92,10 +120,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const isProtectedRoute = !isAuthRoute;
 
     if (isProtectedRoute && !user) {
-      // User is not logged in, trying to access protected route -> redirect to landing page
       router.push('/');
     } else if (isAuthRoute && user) {
-      // User is already logged in, trying to access landing page -> redirect to dashboard
       router.push('/overview');
     }
   }, [user, loading, pathname, router]);

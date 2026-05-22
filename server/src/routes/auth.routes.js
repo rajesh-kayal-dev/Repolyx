@@ -14,17 +14,18 @@ router.get(
   })
 );
 
-// GitHub OAuth callback
+// GitHub OAuth callback (no session — JWT-based)
 router.get(
   "/github/callback",
   passport.authenticate("github", {
+    session: false,
     failureRedirect: `${env.FRONTEND_URL}/login`
   }),
   githubCallback
 );
 
 // Get current authenticated user profile
-router.get("/me", getCurrentUser);
+router.get("/me", isAuthenticated, getCurrentUser);
 
 // Logout user session
 router.post("/logout", isAuthenticated, logout);
