@@ -9,7 +9,7 @@ passport.use(
     {
       clientID: env.GITHUB_CLIENT_ID,
       clientSecret: env.GITHUB_CLIENT_SECRET,
-      callbackURL: "/api/auth/github/callback"
+      callbackURL: "https://repolyx-server.onrender.com/api/auth/github/callback"
     },
     async (accessToken, refreshToken, profile, done) => {
       try {

@@ -14,6 +14,8 @@ import { errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
 
+app.set("trust proxy", 1);
+
 // 1. Core security and logging middleware
 app.use(helmet());
 app.use(morgan("dev"));
