@@ -49,11 +49,13 @@ export function ActivityCard({ event, isBeginner }: ActivityCardProps) {
   const config = categoryConfig[event.category] || categoryConfig.info;
   const Icon = config.icon;
 
+  const exp = event.expandable || {};
+  const action = event.action || { label: 'View Details', href: `/repositories/${event.repoId}` };
   const hasExpandable =
-    event.expandable.aiExplanation ||
-    event.expandable.suggestedFix ||
-    (event.expandable.relatedFiles && event.expandable.relatedFiles.length > 0) ||
-    (event.expandable.relatedReviews && event.expandable.relatedReviews.length > 0);
+    exp.aiExplanation ||
+    exp.suggestedFix ||
+    (exp.relatedFiles && exp.relatedFiles.length > 0) ||
+    (exp.relatedReviews && exp.relatedReviews.length > 0);
 
   return (
     <div
@@ -90,11 +92,11 @@ export function ActivityCard({ event, isBeginner }: ActivityCardProps) {
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <a
-            href={event.action.href}
+            href={action.href}
             onClick={(e) => e.stopPropagation()}
             className="flex items-center gap-1 rounded-md border border-white/[0.06] px-2.5 py-1 text-[11px] font-medium text-neutral-400 hover:text-white hover:border-white/[0.12] transition-colors"
           >
-            {event.action.label}
+            {action.label}
             <ExternalLink size={11} />
           </a>
           {hasExpandable && (
@@ -115,38 +117,36 @@ export function ActivityCard({ event, isBeginner }: ActivityCardProps) {
             className="overflow-hidden"
           >
             <div className="border-t border-white/[0.06] px-4 py-3 space-y-3">
-              {event.expandable.aiExplanation && (
+              {exp.aiExplanation && (
                 <div className="rounded-lg bg-cyan-500/5 border border-cyan-500/10 p-3">
                   <div className="flex items-center gap-2 text-xs text-cyan-400 mb-1.5">
                     <Sparkles size={12} />
                     AI Explanation
                   </div>
                   <p className="text-xs text-neutral-400 leading-relaxed">
-                    {isBeginner
-                      ? event.expandable.aiExplanation
-                      : event.expandable.aiExplanation}
+                    {exp.aiExplanation}
                   </p>
                 </div>
               )}
 
-              {event.expandable.suggestedFix && (
+              {exp.suggestedFix && (
                 <div className="rounded-lg bg-emerald-500/5 border border-emerald-500/10 p-3">
                   <div className="flex items-center gap-2 text-xs text-emerald-400 mb-1.5">
                     <Lightbulb size={12} />
                     Suggested Action
                   </div>
-                  <p className="text-xs text-neutral-400">{event.expandable.suggestedFix}</p>
+                  <p className="text-xs text-neutral-400">{exp.suggestedFix}</p>
                 </div>
               )}
 
-              {event.expandable.relatedFiles && event.expandable.relatedFiles.length > 0 && (
+              {exp.relatedFiles && exp.relatedFiles.length > 0 && (
                 <div className="rounded-lg bg-white/[0.02] border border-white/[0.06] p-3">
                   <div className="flex items-center gap-2 text-xs text-neutral-400 mb-1.5">
                     <FileText size={12} />
                     Affected Files
                   </div>
                   <div className="space-y-1">
-                    {event.expandable.relatedFiles.slice(0, 4).map((f, i) => (
+                    {exp.relatedFiles.slice(0, 4).map((f, i) => (
                       <div key={i} className="flex items-center gap-2 text-xs">
                         <span className="text-neutral-500 font-mono truncate">{f.path}</span>
                         <span className="text-neutral-600 shrink-0">— {f.purpose}</span>
@@ -156,14 +156,14 @@ export function ActivityCard({ event, isBeginner }: ActivityCardProps) {
                 </div>
               )}
 
-              {event.expandable.relatedReviews && event.expandable.relatedReviews.length > 0 && (
+              {exp.relatedReviews && exp.relatedReviews.length > 0 && (
                 <div className="rounded-lg bg-white/[0.02] border border-white/[0.06] p-3">
                   <div className="flex items-center gap-2 text-xs text-neutral-400 mb-1.5">
                     <GitCommit size={12} />
                     Related Reviews
                   </div>
                   <div className="space-y-1">
-                    {event.expandable.relatedReviews.map((r, i) => (
+                    {exp.relatedReviews.map((r, i) => (
                       <div key={i} className="flex items-center gap-2 text-xs">
                         <span className="text-neutral-300">{r.title}</span>
                         <span className={`text-[10px] px-1 py-0.5 rounded ${
