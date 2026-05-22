@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useState, useEffect, useRef } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import {
   Github,
   GitBranch,
@@ -26,12 +26,18 @@ import { CodeButton } from '@/components/repository/CodeButton';
 import { FileFinder } from '@/components/repository/FileFinder';
 import type { Repository, RepositoryFile, RepositoryEvent, TreeNode, ChatMessage } from '@/lib/types';
 
-export default function RepositoryWorkspacePage() {
+function RepositoryWorkspaceContent() {
   const params = useParams();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const repositoryId = params?.repositoryId as string;
+  const [searchParams, setSearchParams] = useState<URLSearchParams | null>(null);
   const pendingFileId = searchParams?.get('fileId') || null;
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setSearchParams(new URLSearchParams(window.location.search));
+    }
+  }, []);
 
   const [repo, setRepo] = useState<Repository | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -557,6 +563,14 @@ export default function RepositoryWorkspacePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function RepositoryWorkspacePage() {
+  return (
+    <Suspense fallback={<div className="flex h-screen items-center justify-center bg-[#04060a]"><div className="h-8 w-8 animate-spin rounded-full border-t-2 border-[#00f5d4]" /></div>}>
+      <RepositoryWorkspaceContent />
+    </Suspense>
   );
 }
 
