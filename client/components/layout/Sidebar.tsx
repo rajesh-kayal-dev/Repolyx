@@ -25,6 +25,7 @@ interface SidebarProps {
 
 
 const navItems = [
+    { href: '/mcp', label: 'Repolyx MCP', icon: Zap },
     { href: '/overview', label: 'Overview', icon: User },
     { href: '/repositories', label: 'Repositories', icon: GitBranch },
     { href: '/chat', label: 'AI Chat', icon: MessageSquare },

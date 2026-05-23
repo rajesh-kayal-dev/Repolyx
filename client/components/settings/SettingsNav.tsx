@@ -1,11 +1,21 @@
 'use client';
 
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
-import { Settings2, GitBranch, Layers, FileText, CreditCard, Users, TerminalSquare, Bell, ShieldCheck, Eye, Sparkles } from 'lucide-react';
+import { Settings2, GitBranch, Layers, FileText, CreditCard, Users, TerminalSquare, Bell, ShieldCheck, Eye, Sparkles, Monitor, HelpCircle, Keyboard } from 'lucide-react';
 
-const sections = [
+const sections: {
+    group: string;
+    items: { id: string; label: string; icon: any; href?: string }[];
+}[] = [
+    {
+        group: 'Repolyx MCP',
+        items: [
+            { id: 'MCP Workspace', label: 'MCP Workspace', icon: Monitor, href: '/mcp' },
+        ],
+    },
     {
         group: 'Workspace',
         items: [
@@ -32,6 +42,13 @@ const sections = [
             { id: 'Experimental Features', label: 'Experimental Features', icon: Sparkles },
         ],
     },
+    {
+        group: 'Help & Support',
+        items: [
+            { id: 'Help & Support', label: 'Help & Support', icon: HelpCircle },
+            { id: 'Keyboard Shortcuts', label: 'Keyboard Shortcuts', icon: Keyboard },
+        ],
+    },
 ];
 
 interface SettingsNavProps {
@@ -56,6 +73,24 @@ export function SettingsNav({ active, onSelect }: SettingsNavProps) {
                             {group.items.map((item) => {
                                 const Icon = item.icon;
                                 const selected = active === item.id;
+                                if (item.href) {
+                                    return (
+                                        <Link
+                                            key={item.id}
+                                            href={item.href}
+                                            className={`group flex w-full items-center gap-3 rounded-3xl border px-4 py-3 text-left transition ${'border-transparent text-neutral-300 hover:border-white/10 hover:bg-white/5 hover:text-white'}`}
+                                        >
+                                            <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white/5 text-cyan-300 group-hover:bg-cyan-500/10">
+                                                <Icon size={18} />
+                                            </span>
+                                            <div className="min-w-0 flex-1 overflow-hidden">
+                                                <p className="truncate text-sm font-medium">{item.label}</p>
+                                                <p className="truncate text-xs text-neutral-500">Workspace configuration</p>
+                                            </div>
+                                            <Badge variant="secondary">Open</Badge>
+                                        </Link>
+                                    );
+                                }
                                 return (
                                     <button
                                         key={item.id}
