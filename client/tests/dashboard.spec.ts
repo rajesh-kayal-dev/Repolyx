@@ -92,6 +92,9 @@ async function mockDashboard(page: Page) {
   await page.route("**/api/dashboard/contributions", async (route) => {
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(MOCK_CONTRIBUTIONS) });
   });
+  await page.route("**/api/dashboard/achievements", async (route) => {
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ success: true, achievements: [] }) });
+  });
 }
 
 test.describe("Overview Page", () => {

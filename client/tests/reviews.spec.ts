@@ -91,6 +91,9 @@ test.describe("Reviews Page", () => {
 
   test.describe("authenticated", () => {
     test.beforeEach(async ({ page }) => {
+      await page.addInitScript(() => {
+        localStorage.setItem("repolyx_token", "test-mock-token");
+      });
       await page.route("**/api/auth/me", async (route) => {
         await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(MOCK_USER) });
       });

@@ -1,0 +1,163 @@
+- generic [active] [ref=e1]:
+  - alert [ref=e6]
+  - generic [ref=e7]:
+    - banner [ref=e8]:
+      - generic [ref=e9]:
+        - generic [ref=e10]:
+          - button "Toggle sidebar" [ref=e11] [cursor=pointer]:
+            - img [ref=e12]
+          - generic [ref=e13]:
+            - img "Repolyx" [ref=e14]
+            - generic [ref=e15]: Repolyx
+        - generic [ref=e16]:
+          - button "Import" [ref=e17] [cursor=pointer]:
+            - img [ref=e18]
+            - text: Import
+          - button "Search repos, PRs... ⌘ K" [ref=e22] [cursor=pointer]:
+            - img [ref=e23]
+            - generic [ref=e26]: Search repos, PRs...
+            - generic [ref=e27]:
+              - generic [ref=e28]: ⌘
+              - text: K
+          - button "rajesh-kayal-dev/Repolyx" [ref=e30] [cursor=pointer]:
+            - img [ref=e31]
+            - generic [ref=e35]: rajesh-kayal-dev/Repolyx
+            - img [ref=e36]
+          - link "Pull requests" [ref=e38] [cursor=pointer]:
+            - /url: https://github.com/pulls
+            - img [ref=e39]
+          - button "Notifications" [ref=e44] [cursor=pointer]:
+            - img [ref=e45]
+          - link "GitHub profile" [ref=e48] [cursor=pointer]:
+            - /url: https://github.com/rajesh-kayal-dev
+            - img "rajesh-kayal-dev" [ref=e49]
+    - generic [ref=e50]:
+      - complementary [ref=e52]:
+        - navigation [ref=e53]:
+          - generic [ref=e54]:
+            - link "Overview" [ref=e55] [cursor=pointer]:
+              - /url: /overview
+              - img [ref=e56]
+              - generic [ref=e59]: Overview
+            - link "Repositories" [ref=e60] [cursor=pointer]:
+              - /url: /repositories
+              - img [ref=e61]
+              - generic [ref=e65]: Repositories
+            - link "AI Chat" [ref=e66] [cursor=pointer]:
+              - /url: /chat
+              - img [ref=e67]
+              - generic [ref=e69]: AI Chat
+            - link "Pull Requests" [ref=e70] [cursor=pointer]:
+              - /url: /reviews
+              - img [ref=e71]
+              - generic [ref=e74]: Pull Requests
+            - link "Debug Assistant" [ref=e75] [cursor=pointer]:
+              - /url: /debug
+              - img [ref=e76]
+              - generic [ref=e79]: Debug Assistant
+            - link "Documentation" [ref=e80] [cursor=pointer]:
+              - /url: /docs
+              - img [ref=e82]
+              - generic [ref=e85]: Documentation
+            - link "Activity" [ref=e86] [cursor=pointer]:
+              - /url: /activity
+              - img [ref=e87]
+              - generic [ref=e89]: Activity
+        - button "rajesh-kayal-dev rajesh-kayal-dev GitHub User" [ref=e91] [cursor=pointer]:
+          - img "rajesh-kayal-dev" [ref=e92]
+          - generic [ref=e93]:
+            - paragraph [ref=e94]: rajesh-kayal-dev
+            - paragraph [ref=e95]: GitHub User
+      - main [ref=e97]:
+        - generic [ref=e99]:
+          - generic [ref=e101]:
+            - generic [ref=e102]:
+              - img [ref=e104]
+              - generic [ref=e106]:
+                - heading "AI Documentation Workspace" [level=1] [ref=e107]
+                - paragraph [ref=e108]: AI-powered knowledge center for your repositories
+              - generic [ref=e109]:
+                - generic [ref=e110]: Beginner
+                - button [ref=e111] [cursor=pointer]
+                - generic [ref=e113]: Developer
+            - generic [ref=e114]:
+              - generic [ref=e115]:
+                - img
+                - searchbox "Search documentation..." [ref=e116]
+              - combobox [ref=e118] [cursor=pointer]:
+                - option "Select repository..." [selected]
+                - option "Repolyx"
+                - option "sentio-download"
+                - option "slideflow"
+                - option "rajesh-kayal-dev"
+                - option "sql-agent"
+                - option "claude-mcp-server"
+                - option "DataPilotAI"
+                - option "sentio-ai-terminal"
+                - option "rajesh-kayal-portfolio"
+                - option "sentio-cli"
+              - button "Generate Docs" [disabled] [ref=e119]:
+                - img [ref=e120]
+                - text: Generate Docs
+              - button "Export MD" [disabled] [ref=e122]:
+                - img [ref=e123]
+                - text: Export MD
+              - button "Export ZIP" [disabled] [ref=e126]:
+                - img [ref=e127]
+                - text: Export ZIP
+              - button "Sync" [disabled] [ref=e130]:
+                - img [ref=e131]
+                - text: Sync
+              - button "Regenerate" [disabled] [ref=e136]:
+                - img [ref=e137]
+                - text: Regenerate
+          - generic [ref=e140]:
+            - generic [ref=e143]:
+              - generic [ref=e144]:
+                - paragraph [ref=e145]: Core Docs
+                - generic [ref=e146]:
+                  - button "README Generator" [ref=e147] [cursor=pointer]:
+                    - img [ref=e149]
+                    - generic [ref=e151]: README Generator
+                  - button "API Documentation" [ref=e152] [cursor=pointer]:
+                    - img [ref=e153]
+                    - generic [ref=e157]: API Documentation
+                  - button "Setup Guide" [ref=e158] [cursor=pointer]:
+                    - img [ref=e159]
+                    - generic [ref=e162]: Setup Guide
+                  - button "Architecture Summary" [ref=e163] [cursor=pointer]:
+                    - img [ref=e164]
+                    - generic [ref=e168]: Architecture Summary
+                  - button "Changelog" [ref=e169] [cursor=pointer]:
+                    - img [ref=e170]
+                    - generic [ref=e174]: Changelog
+              - generic [ref=e175]:
+                - paragraph [ref=e176]: Advanced
+                - generic [ref=e177]:
+                  - button "Endpoint Docs" [ref=e178] [cursor=pointer]:
+                    - img [ref=e179]
+                    - generic [ref=e183]: Endpoint Docs
+                  - button "Environment Docs" [ref=e184] [cursor=pointer]:
+                    - img [ref=e185]
+                    - generic [ref=e188]: Environment Docs
+                  - button "Database Schema" [ref=e189] [cursor=pointer]:
+                    - img [ref=e190]
+                    - generic [ref=e194]: Database Schema
+                  - button "Authentication Flow" [ref=e195] [cursor=pointer]:
+                    - img [ref=e196]
+                    - generic [ref=e198]: Authentication Flow
+                  - button "Deployment Guide" [ref=e199] [cursor=pointer]:
+                    - img [ref=e200]
+                    - generic [ref=e205]: Deployment Guide
+                  - button "Folder Structure" [ref=e206] [cursor=pointer]:
+                    - img [ref=e207]
+                    - generic [ref=e212]: Folder Structure
+              - generic [ref=e213]:
+                - paragraph [ref=e214]: AI Features
+                - button "AI Suggestions" [ref=e216] [cursor=pointer]:
+                  - img [ref=e217]
+                  - generic [ref=e220]: AI Suggestions
+            - generic [ref=e222]:
+              - img [ref=e223]
+              - heading "AI Documentation Workspace" [level=2] [ref=e225]
+              - paragraph [ref=e226]: Select a repository and generate AI-powered documentation for your project. Repolyx will scan your code and create professional markdown files automatically.
