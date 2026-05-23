@@ -64,3 +64,4 @@ NUL
 
 # Skill installer lock files
 skills-lock.json
+.vercel

@@ -1,4 +1,4 @@
 {
-  "buildCommand": "cd client && npm run build && cp -r .next ..",
+  "buildCommand": "cd client && npm run build && cp -r .next .. && cp package.json .. && cp next.config.mjs ..",
   "installCommand": "cd client && npm install"
 }
