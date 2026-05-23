@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import {
   MessageSquare,
   Plus,
@@ -25,6 +24,7 @@ import {
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/lib/auth-context';
 import { useImportRepo } from '@/lib/import-repo-context';
+import { RepolyxLogo } from '@/components/brand/RepolyxLogo';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { highlightCode } from '@/lib/code-highlighter';
@@ -637,7 +637,7 @@ export default function ChatWorkspacePage() {
                       }`}
                     >
                       {isAi ? (
-                        <Image src="/Repolyx.png" alt="Repolyx" width={32} height={32} className="object-contain p-0.5" />
+                        <RepolyxLogo size={32} iconOnly />
                       ) : user?.avatarUrl ? (
                         <img src={user.avatarUrl} alt={user.username} className="h-full w-full object-cover" referrerPolicy="no-referrer" />
                       ) : (
@@ -776,7 +776,7 @@ export default function ChatWorkspacePage() {
             {isAiThinking && (
               <div className="flex gap-3 animate-fade-in">
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent/10 border border-accent/20 overflow-hidden">
-                  <Image src="/Repolyx.png" alt="Repolyx" width={32} height={32} className="object-contain p-0.5 opacity-80" />
+                  <RepolyxLogo size={32} iconOnly />
                 </div>
                 <div className="flex flex-col items-start gap-1.5">
                   <div className="rounded-xl px-3 py-2 text-xs bg-white/[0.02] border border-white/[0.06] flex items-center gap-2">

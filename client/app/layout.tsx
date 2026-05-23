@@ -10,9 +10,8 @@ export const metadata: Metadata = {
     title: 'Repolyx | Repository Intelligence',
     description: 'AI-powered GitHub repository intelligence platform for engineering teams.',
     icons: {
-        icon: '/Repolyx.png',
-        shortcut: '/Repolyx.png',
-        apple: '/Repolyx.png',
+        icon: { url: '/icon.svg', type: 'image/svg+xml' },
+        apple: '/icon.svg',
     },
 };
 

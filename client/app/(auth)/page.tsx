@@ -482,7 +482,7 @@ export default function LandingPage() {
     );
 }
 
-useIsVisible();
+    useIsVisible();
 
     useEffect(() => {
         /* Scroll progress */
@@ -532,7 +532,7 @@ useIsVisible();
                             console.error('Failed to init UnicornStudio:', err);
                         }
                     }
-                }, 200); // 200ms delay to guarantee full React DOM hydration and paint
+                }, 200);
             };
 
             const existingScript = document.querySelector('script[src*="unicornStudio"]');
