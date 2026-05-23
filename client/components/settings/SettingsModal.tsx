@@ -25,13 +25,13 @@ function Toggle({ enabled, onChange }: { enabled: boolean; onChange: () => void 
             role="switch"
             aria-checked={enabled}
             onClick={onChange}
-            className={`relative h-5.5 w-10 shrink-0 cursor-pointer rounded-full border transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
+            className={`relative h-6 w-10 shrink-0 cursor-pointer rounded-full border transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
                 enabled ? 'border-accent/40 bg-accent/20 shadow-[0_0_8px_rgba(56,189,248,0.1)]' : 'border-white/10 bg-white/[0.04] hover:bg-white/[0.06]'
             }`}
         >
             <div
-                className={`h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-all duration-200 ${
-                    enabled ? 'translate-x-[20px]' : 'translate-x-[4px]'
+                className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-all duration-200 ${
+                    enabled ? 'translate-x-[18px]' : 'translate-x-[1px]'
                 }`}
                 style={{ marginTop: '0px' }}
             />

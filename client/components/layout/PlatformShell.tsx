@@ -13,6 +13,7 @@ import { RepolyxLogo } from '@/components/brand/RepolyxLogo';
 import { Sidebar } from './Sidebar';
 import { HelpModal } from '@/components/settings/HelpModal';
 import { SettingsModal } from '@/components/settings/SettingsModal';
+import { KeyboardShortcutsModal } from '@/components/settings/KeyboardShortcutsModal';
 import { AnimatePresence } from 'framer-motion';
 import { ToastContainer } from '@/components/ui/ToastContainer';
 import { useImportRepo } from '@/lib/import-repo-context';
@@ -39,6 +40,7 @@ export function PlatformShell({ children }: { children: ReactNode }) {
     const [isRepoSwitcherOpen, setIsRepoSwitcherOpen] = useState(false);
     const [isHelpOpen, setIsHelpOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isKeyboardShortcutsOpen, setIsKeyboardShortcutsOpen] = useState(false);
     const [navRepos, setNavRepos] = useState<NavRepo[]>([]);
     const [activeRepo, setActiveRepo] = useState<NavRepo | null>(null);
     const { openImportRepo } = useImportRepo();
@@ -55,6 +57,7 @@ export function PlatformShell({ children }: { children: ReactNode }) {
             setIsRepoSwitcherOpen(false);
             setIsHelpOpen(false);
             setIsSettingsOpen(false);
+            setIsKeyboardShortcutsOpen(false);
         }
     }, []);
 
@@ -222,6 +225,7 @@ export function PlatformShell({ children }: { children: ReactNode }) {
                     <Sidebar
                         onOpenSettings={() => setIsSettingsOpen(true)}
                         onOpenHelp={() => setIsHelpOpen(true)}
+                        onOpenKeyboardShortcuts={() => setIsKeyboardShortcutsOpen(true)}
                     />
                 </div>
 
@@ -251,6 +255,7 @@ export function PlatformShell({ children }: { children: ReactNode }) {
             <AnimatePresence>
                 {isHelpOpen && <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />}
                 {isSettingsOpen && <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />}
+                {isKeyboardShortcutsOpen && <KeyboardShortcutsModal isOpen={isKeyboardShortcutsOpen} onClose={() => setIsKeyboardShortcutsOpen(false)} />}
             </AnimatePresence>
             <ToastContainer />
         </div>

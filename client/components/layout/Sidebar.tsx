@@ -21,6 +21,7 @@ import { useAuth } from '@/lib/auth-context';
 interface SidebarProps {
     onOpenSettings: () => void;
     onOpenHelp: () => void;
+    onOpenKeyboardShortcuts: () => void;
 }
 
 
@@ -35,7 +36,7 @@ const navItems = [
     { href: '/activity', label: 'Activity', icon: Activity },
 ];
 
-export function Sidebar({ onOpenSettings, onOpenHelp }: SidebarProps) {
+export function Sidebar({ onOpenSettings, onOpenHelp, onOpenKeyboardShortcuts }: SidebarProps) {
     const pathname = usePathname();
     const [menuOpen, setMenuOpen] = useState(false);
     const { user, logout } = useAuth();
@@ -121,6 +122,7 @@ export function Sidebar({ onOpenSettings, onOpenHelp }: SidebarProps) {
                             </button>
                             <button
                                 type="button"
+                                onClick={() => { setMenuOpen(false); onOpenKeyboardShortcuts(); }}
                                 className="flex w-full items-center gap-2.5 px-4 py-2 text-sm text-neutral-400 hover:bg-white/[0.03] hover:text-neutral-200 transition-colors"
                             >
                                 <Keyboard size={14} />
