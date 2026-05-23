@@ -195,23 +195,25 @@ export function PlatformShell({ children }: { children: ReactNode }) {
                         <NotificationDropdown />
 
                         {/* Profile */}
-                        <a
-                            href={`https://github.com/${user?.username || ''}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.06] text-xs font-medium text-neutral-300 hover:bg-white/[0.10] transition-colors ml-1 overflow-hidden"
-                            aria-label="GitHub profile"
-                        >
-                            {user?.avatarUrl ? (
-                                <img
-                                    src={user.avatarUrl}
-                                    alt={user.username}
-                                    className="h-full w-full rounded-full object-cover"
-                                />
-                            ) : (
-                                user?.username?.slice(0, 2).toUpperCase() || '??'
-                            )}
-                        </a>
+                        <div className="relative ml-1">
+                            <button
+                                type="button"
+                                onClick={() => setIsSettingsOpen(true)}
+                                className="flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.06] text-xs font-medium text-neutral-300 hover:bg-white/[0.10] transition-colors overflow-hidden cursor-pointer"
+                                aria-label="Profile settings"
+                                title="Open settings"
+                            >
+                                {user?.avatarUrl ? (
+                                    <img
+                                        src={user.avatarUrl}
+                                        alt={user.username}
+                                        className="h-full w-full rounded-full object-cover"
+                                    />
+                                ) : (
+                                    user?.username?.slice(0, 2).toUpperCase() || '??'
+                                )}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </header>
