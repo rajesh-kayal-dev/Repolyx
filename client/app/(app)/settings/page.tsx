@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/Card';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { SettingsNav } from '@/components/settings/SettingsNav';
 import { SettingsRightPanel } from '@/components/settings/SettingsRightPanel';
-import { ArrowRight, Clock3, Globe, Layers, Link2, ShieldCheck, Sparkles, TerminalSquare, Users, GitBranch, CreditCard, Bell, Eye, Settings2 } from 'lucide-react';
+import { ArrowRight, Clock3, Globe, Layers, Link2, ShieldCheck, Sparkles, TerminalSquare, Users, GitBranch, CreditCard, Bell, Eye, Settings2, Monitor, FolderOpen, CheckCircle, AlertTriangle, Server as ServerIcon, Wifi, WifiOff, HelpCircle, Keyboard, ExternalLink, BookOpen, MessageCircle, Zap, Search, Codepen, Command, Sliders, Download } from 'lucide-react';
 
 const providerCards = [
   {
@@ -67,6 +67,8 @@ const apiKeys = [
 ];
 
 const sections = [
+  'Help & Support',
+  'Keyboard Shortcuts',
   'General',
   'GitHub Integration',
   'AI Providers',
@@ -184,6 +186,181 @@ export default function SettingsPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </Card>
+          </div>
+        );
+
+      case 'Help & Support':
+        return (
+          <div className="space-y-6">
+            <Card className="rounded-[32px] border-white/10 bg-gradient-to-br from-[#09101a] to-[#070a0f] p-6">
+              <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.28em] text-cyan-400">Repolyx MCP</p>
+                  <h3 className="mt-2 text-2xl font-semibold text-white">Help & support</h3>
+                  <p className="mt-3 max-w-2xl text-sm leading-6 text-neutral-400">Get started with Repolyx MCP, access documentation, report issues, and connect with the community.</p>
+                </div>
+                <Badge variant="secondary">v1.0.0</Badge>
+              </div>
+
+              <div className="mt-8 grid gap-4 xl:grid-cols-2">
+                <div className="rounded-3xl border border-white/10 bg-[#070c13] p-5">
+                  <p className="text-sm uppercase tracking-[0.24em] text-neutral-500">Quick guides</p>
+                  <div className="mt-5 space-y-4">
+                    {[
+                      { icon: BookOpen, title: 'Getting started', desc: 'Learn how to connect your workspace and set up the MCP server.', action: 'Read guide' },
+                      { icon: GitBranch, title: 'GitHub workflow', desc: 'Understand branches, commits, PRs, and the GitHub Flow.', action: 'View tutorial' },
+                      { icon: TerminalSquare, title: 'Pre-push validation', desc: 'Run automated checks before pushing to GitHub.', action: 'Learn more' },
+                      { icon: Monitor, title: 'MCP server setup', desc: 'Install and configure the local MCP server on your machine.', action: 'Setup guide' },
+                    ].map((guide) => {
+                      const Icon = guide.icon;
+                      return (
+                        <div key={guide.title} className="rounded-2xl border border-white/10 bg-[#05070f] p-4">
+                          <div className="flex items-start gap-3">
+                            <div className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cyan-500/15 text-cyan-400">
+                              <Icon size={16} />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-semibold text-white">{guide.title}</p>
+                              <p className="mt-1 text-xs text-neutral-400">{guide.desc}</p>
+                            </div>
+                            <button type="button" className="shrink-0 rounded-2xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-neutral-300 hover:border-cyan-400 hover:text-white transition">
+                              {guide.action}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="rounded-3xl border border-white/10 bg-[#070c13] p-5">
+                    <p className="text-sm uppercase tracking-[0.24em] text-neutral-500">Contact & community</p>
+                    <div className="mt-5 space-y-3">
+                      {[
+                        { icon: MessageCircle, label: 'Community forum', desc: 'Ask questions and share tips' },
+                        { icon: ExternalLink, label: 'Report an issue', desc: 'File a bug or feature request' },
+                        { icon: BookOpen, label: 'Documentation', desc: 'Full MCP reference guide' },
+                      ].map((item) => {
+                        const Icon = item.icon;
+                        return (
+                          <div key={item.label} className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#05070f] px-4 py-3">
+                            <div className="flex items-center gap-3">
+                              <div className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-violet-500/15 text-violet-400">
+                                <Icon size={16} />
+                              </div>
+                              <div>
+                                <p className="text-sm font-semibold text-white">{item.label}</p>
+                                <p className="text-xs text-neutral-400">{item.desc}</p>
+                              </div>
+                            </div>
+                            <ExternalLink size={14} className="text-neutral-500 shrink-0" />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-cyan-500/[0.04] to-[#070a0f] p-5">
+                    <p className="text-sm uppercase tracking-[0.24em] text-cyan-400">Tip</p>
+                    <p className="mt-3 text-sm leading-6 text-neutral-300">
+                      Run <span className="font-mono text-cyan-300">npx repolyx-mcp</span> in your project directory to start the local MCP server on port 3939.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
+        );
+
+      case 'Keyboard Shortcuts':
+        return (
+          <div className="space-y-6">
+            <Card className="rounded-[32px] border-white/10 bg-gradient-to-br from-[#09101a] to-[#070a0f] p-6">
+              <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.28em] text-cyan-400">Repolyx MCP</p>
+                  <h3 className="mt-2 text-2xl font-semibold text-white">Keyboard shortcuts</h3>
+                  <p className="mt-3 max-w-2xl text-sm leading-6 text-neutral-400">Speed up your workflow with keyboard shortcuts for navigation, MCP operations, and common actions.</p>
+                </div>
+                <Badge variant="secondary">14 shortcuts</Badge>
+              </div>
+
+              <div className="mt-8 grid gap-4 xl:grid-cols-2">
+                <div className="rounded-3xl border border-white/10 bg-[#070c13] p-5">
+                  <p className="text-sm uppercase tracking-[0.24em] text-neutral-500">Navigation</p>
+                  <div className="mt-5 space-y-3">
+                    {[
+                      { keys: ['⌘', 'K'], action: 'Command palette' },
+                      { keys: ['⌘', '1'], action: 'Go to overview' },
+                      { keys: ['⌘', '2'], action: 'Go to repositories' },
+                      { keys: ['⌘', '3'], action: 'Go to AI Chat' },
+                      { keys: ['⌘', '4'], action: 'Go to Pull Requests' },
+                      { keys: ['⌘', ','], action: 'Open settings' },
+                    ].map((item) => (
+                      <div key={item.action} className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#05070f] px-4 py-3">
+                        <span className="text-sm text-neutral-300">{item.action}</span>
+                        <div className="flex items-center gap-1.5">
+                          {item.keys.map((key) => (
+                            <kbd key={key} className="inline-flex h-7 min-w-[28px] items-center justify-center rounded-lg border border-white/10 bg-white/5 px-2 text-xs font-mono text-neutral-200">
+                              {key}
+                            </kbd>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="rounded-3xl border border-white/10 bg-[#070c13] p-5">
+                    <p className="text-sm uppercase tracking-[0.24em] text-neutral-500">MCP operations</p>
+                    <div className="mt-5 space-y-3">
+                      {[
+                        { keys: ['⌘', '⇧', 'W'], action: 'Connect workspace' },
+                        { keys: ['⌘', '⇧', 'H'], action: 'Run health checks' },
+                        { keys: ['⌘', '⇧', 'V'], action: 'Validate project' },
+                        { keys: ['⌘', '⇧', 'P'], action: 'Push to GitHub' },
+                      ].map((item) => (
+                        <div key={item.action} className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#05070f] px-4 py-3">
+                          <span className="text-sm text-neutral-300">{item.action}</span>
+                          <div className="flex items-center gap-1.5">
+                            {item.keys.map((key) => (
+                              <kbd key={key} className="inline-flex h-7 min-w-[28px] items-center justify-center rounded-lg border border-white/10 bg-white/5 px-2 text-xs font-mono text-neutral-200">
+                                {key}
+                              </kbd>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="rounded-3xl border border-white/10 bg-[#070c13] p-5">
+                    <p className="text-sm uppercase tracking-[0.24em] text-neutral-500">Actions</p>
+                    <div className="mt-5 space-y-3">
+                      {[
+                        { keys: ['⌘', 'S'], action: 'Save changes' },
+                        { keys: ['⌘', 'Z'], action: 'Undo' },
+                        { keys: ['⌘', '⇧', 'Z'], action: 'Redo' },
+                        { keys: ['⌘', 'F'], action: 'Search files' },
+                      ].map((item) => (
+                        <div key={item.action} className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#05070f] px-4 py-3">
+                          <span className="text-sm text-neutral-300">{item.action}</span>
+                          <div className="flex items-center gap-1.5">
+                            {item.keys.map((key) => (
+                              <kbd key={key} className="inline-flex h-7 min-w-[28px] items-center justify-center rounded-lg border border-white/10 bg-white/5 px-2 text-xs font-mono text-neutral-200">
+                                {key}
+                              </kbd>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
             </Card>
           </div>
