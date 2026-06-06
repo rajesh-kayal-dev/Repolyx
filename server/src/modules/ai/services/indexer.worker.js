@@ -18,11 +18,20 @@ try {
         return null; // Stop retrying after 3 times to prevent infinite connection loops
       }
       return Math.min(times * 50, 2000);
+    },
+    reconnectOnError(err) {
+      if (err.message.includes("WRONGPASS")) {
+        return false;
+      }
+      return true;
     }
   });
   
   redisConnection.on('error', (err) => {
     logger.warn(`Redis connection error: ${err.message}`);
+    if (err.message.includes("WRONGPASS")) {
+      redisConnection.disconnect();
+    }
   });
 } catch (err) {
   logger.warn(`Could not initialize Redis: ${err.message}`);

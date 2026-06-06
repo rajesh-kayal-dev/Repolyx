@@ -26,7 +26,6 @@ interface SidebarProps {
 
 
 const navItems = [
-    { href: '/mcp', label: 'Repolyx MCP', icon: Zap },
     { href: '/overview', label: 'Overview', icon: User },
     { href: '/repositories', label: 'Repositories', icon: GitBranch },
     { href: '/chat', label: 'AI Chat', icon: MessageSquare },
@@ -112,6 +111,14 @@ export function Sidebar({ onOpenSettings, onOpenHelp, onOpenKeyboardShortcuts }:
                                 <Settings2 size={14} />
                                 Settings
                             </button>
+                            <Link
+                                href="/mcp"
+                                onClick={() => setMenuOpen(false)}
+                                className="flex w-full items-center gap-2.5 px-4 py-2 text-sm text-neutral-400 hover:bg-white/[0.03] hover:text-neutral-200 transition-colors"
+                            >
+                                <Zap size={14} />
+                                Repolyx MCP
+                            </Link>
                             <button
                                 type="button"
                                 onClick={() => { setMenuOpen(false); onOpenHelp(); }}

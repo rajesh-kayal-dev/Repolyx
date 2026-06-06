@@ -32,12 +32,22 @@ function createRedisClient() {
         if (times > 3) return null;
         return Math.min(times * 100, 2000);
       },
+      reconnectOnError(err) {
+        if (err.message.includes("WRONGPASS")) {
+          return false;
+        }
+        return true;
+      },
       lazyConnect: true,
       ...(isSecure ? { tls: { rejectUnauthorized: false } } : {}),
     });
 
     redisClient.on("error", (err) => {
       logger.warn(`Redis: ${err.message}`);
+      if (err.message.includes("WRONGPASS")) {
+        isRedisAvailable = false;
+        redisClient.disconnect();
+      }
     });
 
     redisClient.on("ready", () => {
