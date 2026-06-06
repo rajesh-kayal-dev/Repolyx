@@ -6,36 +6,39 @@ import logger from "../../../utils/logger.js";
 
 // Optional redis connection (will gracefully fail if Redis isn't running)
 let redisConnection = null;
+let authFailed = false;
+
 try {
   const redisUrl = process.env.REDIS_URL || "redis://127.0.0.1:6379";
   const isSecure = redisUrl.startsWith("rediss://");
   
   redisConnection = new Redis(redisUrl, {
     maxRetriesPerRequest: null,
+    enableOfflineQueue: false,
     ...(isSecure ? { tls: { rejectUnauthorized: false } } : {}),
     retryStrategy(times) {
-      if (times > 3) {
-        return null; // Stop retrying after 3 times to prevent infinite connection loops
-      }
+      // Stop retrying immediately on auth failure or after 3 attempts
+      if (authFailed) return null;
+      if (times > 3) return null;
       return Math.min(times * 50, 2000);
     },
-    reconnectOnError(err) {
-      if (err.message.includes("WRONGPASS")) {
-        return false;
-      }
-      return true;
-    }
   });
   
   redisConnection.on('error', (err) => {
-    logger.warn(`Redis connection error: ${err.message}`);
-    if (err.message.includes("WRONGPASS")) {
-      redisConnection.disconnect();
+    if (err.message.includes("WRONGPASS") || err.message.includes("ERR invalid password")) {
+      if (!authFailed) {
+        authFailed = true;
+        logger.warn("Redis (worker): Authentication failed. Disabling indexing queue — check REDIS_URL credentials.");
+        redisConnection.disconnect();
+      }
+    } else {
+      logger.warn(`Redis connection error: ${err.message}`);
     }
   });
 } catch (err) {
   logger.warn(`Could not initialize Redis: ${err.message}`);
 }
+
 
 export const indexingQueue = redisConnection ? new Queue("RepositoryIndexing", { connection: redisConnection }) : null;
 

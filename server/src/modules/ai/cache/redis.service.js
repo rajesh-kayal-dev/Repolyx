@@ -3,6 +3,7 @@ import logger from "../../../utils/logger.js";
 
 let redisClient = null;
 let isRedisAvailable = false;
+let authFailed = false;
 
 const DEFAULT_TTL = {
   aiResponse: 60 * 60,
@@ -27,26 +28,29 @@ function createRedisClient() {
 
   try {
     redisClient = new Redis(redisUrl, {
-      maxRetriesPerRequest: 3,
+      maxRetriesPerRequest: null,
       retryStrategy(times) {
+        // Stop all retries immediately if auth failed
+        if (authFailed) return null;
         if (times > 3) return null;
         return Math.min(times * 100, 2000);
       },
-      reconnectOnError(err) {
-        if (err.message.includes("WRONGPASS")) {
-          return false;
-        }
-        return true;
-      },
+      enableOfflineQueue: false,
       lazyConnect: true,
       ...(isSecure ? { tls: { rejectUnauthorized: false } } : {}),
     });
 
     redisClient.on("error", (err) => {
-      logger.warn(`Redis: ${err.message}`);
-      if (err.message.includes("WRONGPASS")) {
-        isRedisAvailable = false;
-        redisClient.disconnect();
+      if (err.message.includes("WRONGPASS") || err.message.includes("ERR invalid password")) {
+        if (!authFailed) {
+          authFailed = true;
+          isRedisAvailable = false;
+          logger.warn("Redis: Authentication failed (WRONGPASS). Disabling Redis — check REDIS_URL credentials.");
+          // Permanently disconnect — no more retries
+          redisClient.disconnect();
+        }
+      } else {
+        logger.warn(`Redis: ${err.message}`);
       }
     });
 
@@ -67,6 +71,7 @@ function createRedisClient() {
 }
 
 async function ensureConnection() {
+  if (authFailed) return false;  // Don't attempt reconnect after auth failure
   if (isRedisAvailable) return true;
   if (!redisClient) return false;
 
