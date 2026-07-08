@@ -322,6 +322,7 @@ export const api = {
       revokeToken(id: string) { return request<{ success: boolean }>(`/api/settings/access-tokens/${id}/revoke`, { method: 'PATCH' }); },
       deleteToken(id: string) { return request<{ success: boolean }>(`/api/settings/access-tokens/${id}`, { method: 'DELETE' }); },
     },
+  },
   githubWorkspace: {
     connect(token: string) {
       return request<{ connected: boolean; username: string; avatar: string; connectedAt: string }>('/api/github/workspace/connect', {
