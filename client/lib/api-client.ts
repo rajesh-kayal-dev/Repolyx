@@ -323,4 +323,24 @@ export const api = {
       deleteToken(id: string) { return request<{ success: boolean }>(`/api/settings/access-tokens/${id}`, { method: 'DELETE' }); },
     },
   },
+  githubWorkspace: {
+    connect(token: string) {
+      return request<{ connected: boolean; username: string; avatar: string; connectedAt: string }>('/api/github/workspace/connect', {
+        method: 'POST',
+        body: JSON.stringify({ token }),
+      });
+    },
+    status() {
+      return request<{ connected: boolean; username?: string; avatar?: string; connectedAt?: string }>('/api/github/workspace/status');
+    },
+    disconnect() {
+      return request<{ success: boolean }>('/api/github/workspace/disconnect', { method: 'DELETE' });
+    },
+    chat(message: string, history: any[] = [], context: any = {}) {
+      return request<{ response: string; state?: any }>('/api/github/workspace/chat', {
+        method: 'POST',
+        body: JSON.stringify({ message, history, context }),
+      });
+    }
+  },
 };

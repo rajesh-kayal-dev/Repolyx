@@ -82,3 +82,87 @@ A scalable, modular API server.
 - **Customizable Dashboard Widgets:** Allowing users to tailor their dashboard with specific workflow metrics and security alerts.
 - **Real-time Collaboration:** Introducing multiplayer features for pair programming and collaborative code reviews within the workspace.
 - **Enhanced Documentation Generation:** Improving the AI Documentation Workspace to support diagram generation (e.g., Mermaid.js) directly from codebase analysis.
+
+---
+
+## 7. Feature: AI GitHub Workspace (Powered by MCP)
+
+**Overview**
+I want to add a new feature to Repolyx called AI GitHub Workspace.
+This feature should provide a beginner-friendly interface that allows users to connect their GitHub account using a Personal Access Token (PAT) and then manage repositories using natural language through an AI chat interface.
+The goal is to hide all Git commands and GitHub API complexity from the user.
+The experience should feel like talking to an AI software engineer.
+
+### Feature Flow
+**Sidebar**
+`AI GitHub Workspace` -> `Connect GitHub` -> `Paste GitHub Personal Access Token` -> `Validate Token` -> `Connected Successfully` -> `AI Chat Environment` -> `User manages GitHub repositories using natural language`
+
+### UI
+Create a new page: `/workspace/github`
+The page should contain two states.
+
+#### State 1: Not Connected
+Show a clean card:
+> **GitHub AI Workspace**
+> Connect your GitHub account to allow AI to manage your repositories.
+> -------------------------------------
+> **GitHub Personal Access Token**
+> `[____________________________]`
+> **[Connect]**
+
+Below the input show: "How to generate a GitHub Personal Access Token" with a documentation link.
+When user clicks Connect: Send token to backend.
+Backend should: Verify token with GitHub API, Fetch user profile, Return (username, avatar, name, email).
+If valid: Store token securely, Show "Connected Successfully".
+If invalid: Show "Invalid GitHub Token", Do not save invalid tokens.
+
+#### State 2: Connected
+Show: Avatar, Username, "Connected" badge, "Disconnect" Button.
+Below that: "AI GitHub Workspace" title, then open a ChatGPT-style chat.
+
+**Chat UI**
+Modern AI chat including: message history, markdown rendering, code blocks, loading animation, streaming responses, auto scroll, copy button.
+Input: "Ask AI to manage your repositories..." -> [Send]
+
+### AI Capabilities
+The AI should understand natural language.
+
+**Examples:**
+- **Repository Management:** Create a repository named ecommerce-api, Create a private repository, Rename repository, Delete repository, Archive repository, Fork repository
+- **Git Operations:** Create a branch named feature/auth, Merge branch, Delete branch, Commit current changes, Push changes, Clone repository, Create release
+- **Documentation:** Generate README, Improve README, Generate CONTRIBUTING.md, Create LICENSE, Generate API documentation, Create CHANGELOG
+- **Project Setup:** Create Node.js project, Create Express project, Create Next.js project, Create NestJS project, Create React project, Create TypeScript configuration, Initialize Git
+- **Project Improvement:** Review project, Find bugs, Fix bugs, Improve folder structure, Refactor code, Remove duplicate code, Find security issues, Optimize performance, Generate unit tests
+- **GitHub Features:** Create Pull Request, Review Pull Request, Merge Pull Request, Create Issue, Assign labels, Close issue, Generate Release Notes
+- **Project Automation:** Setup GitHub Actions, Create CI/CD pipeline, Add Docker support, Create docker-compose, Setup ESLint, Setup Prettier, Setup Husky, Setup Commitlint
+- **Repository Analysis:** Explain project structure, Find unused files, Show dependency graph, Explain authentication flow, Analyze architecture, Find large files, Generate project summary
+
+### Backend
+Create: `github.service.ts`, `github.controller.ts`, `github.routes.ts`, `github.tools.ts`, `github.mcp.ts`
+Use GitHub REST API. All GitHub operations should go through one service layer.
+
+**MCP Layer**
+Create an internal MCP-style tool layer. Each GitHub action should be implemented as a separate tool.
+Examples: `CreateRepositoryTool`, `CreateBranchTool`, `CreateReadmeTool`, `PushChangesTool`, `CommitTool`, `ReviewRepositoryTool`, `FixBugTool`, `CreateWorkflowTool`, `GenerateDocsTool`.
+The AI should choose the correct tool based on the user's prompt.
+
+**AI Workflow**
+`User Prompt` -> `AI understands intent` -> `Select GitHub Tool` -> `Execute Tool` -> `Return Result` -> `Explain what was done`
+
+**Example:**
+*User:* Create a repository named AI Notes
+*AI:* -> `CreateRepositoryTool` -> `GitHub API` -> `Repository Created`
+*Response:* Repository "AI Notes" has been created successfully. Repository URL: https://github.com/username/ai-notes
+
+### Security
+- Never expose the GitHub token.
+- Encrypt it before storing.
+- Allow users to disconnect. When disconnected: Delete the stored token.
+- Never log tokens. Never send tokens to the frontend after the initial connection.
+
+### Database
+Create table `GithubConnection`: `id`, `userId`, `githubId`, `username`, `avatar`, `encryptedToken`, `connectedAt`, `updatedAt`
+Relationship: `User` -> `GithubConnection` (One connection per user).
+
+### Future Ready
+Design the system so additional MCP providers can be added later (e.g., GitLab MCP, Bitbucket MCP, Docker MCP, Filesystem MCP, PostgreSQL MCP, Slack MCP, Jira MCP). The GitHub implementation should follow a provider-based architecture.

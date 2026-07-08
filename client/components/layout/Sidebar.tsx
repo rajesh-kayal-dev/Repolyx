@@ -15,6 +15,7 @@ import {
     TerminalSquare,
     Zap,
     User,
+    Bot,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 
@@ -33,6 +34,7 @@ const navItems = [
     { href: '/debug', label: 'Debug Assistant', icon: TerminalSquare },
     { href: '/docs', label: 'Documentation', icon: FileText },
     { href: '/activity', label: 'Activity', icon: Activity },
+    { href: '/workspace/github', label: 'AI GitHub Workspace', icon: Bot },
 ];
 
 export function Sidebar({ onOpenSettings, onOpenHelp, onOpenKeyboardShortcuts }: SidebarProps) {
