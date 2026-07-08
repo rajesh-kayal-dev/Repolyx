@@ -282,4 +282,45 @@ export const api = {
       },
     },
   },
+  settings: {
+    profile: {
+      get() { return request<{ success: boolean; data: import('./types/settings').ProfileData }>('/api/settings/profile'); },
+      update(data: { displayName: string; workspaceName: string }) {
+        return request<{ success: boolean }>('/api/settings/profile', { method: 'PATCH', body: JSON.stringify(data) });
+      },
+    },
+    github: {
+      get() { return request<{ success: boolean; data: import('./types/settings').GithubIntegrationData }>('/api/settings/github'); },
+      disconnect() { return request<{ success: boolean }>('/api/settings/github', { method: 'DELETE' }); },
+    },
+    appearance: {
+      get() { return request<{ success: boolean; data: import('./types/settings').AppearanceData }>('/api/settings/appearance'); },
+      update(data: import('./types/settings').AppearanceData) {
+        return request<{ success: boolean; data: import('./types/settings').AppearanceData }>('/api/settings/appearance', { method: 'PATCH', body: JSON.stringify(data) });
+      },
+    },
+    notifications: {
+      get() { return request<{ success: boolean; data: import('./types/settings').NotificationPreferences }>('/api/settings/notifications'); },
+      update(data: import('./types/settings').NotificationPreferences) {
+        return request<{ success: boolean; data: import('./types/settings').NotificationPreferences }>('/api/settings/notifications', { method: 'PATCH', body: JSON.stringify(data) });
+      },
+    },
+    ai: {
+      get() { return request<{ success: boolean; data: import('./types/settings').AIPreferencesData }>('/api/settings/ai-preferences'); },
+      update(data: import('./types/settings').AIPreferencesData) {
+        return request<{ success: boolean; data: import('./types/settings').AIPreferencesData }>('/api/settings/ai-preferences', { method: 'PATCH', body: JSON.stringify(data) });
+      },
+    },
+    security: {
+      sessions() { return request<{ success: boolean; sessions: import('./types/settings').UserSessionData[] }>('/api/settings/security'); },
+      deleteSession(id: string) { return request<{ success: boolean }>(`/api/settings/sessions/${id}`, { method: 'DELETE' }); },
+      deleteAllOtherSessions() { return request<{ success: boolean }>('/api/settings/sessions', { method: 'DELETE' }); },
+      tokens() { return request<{ success: boolean; data: import('./types/settings').AccessTokenData[] }>('/api/settings/access-tokens'); },
+      createToken(data: { name: string; expiresInDays?: number }) {
+        return request<{ success: boolean; data: import('./types/settings').AccessTokenData & { token: string } }>('/api/settings/access-tokens', { method: 'POST', body: JSON.stringify(data) });
+      },
+      revokeToken(id: string) { return request<{ success: boolean }>(`/api/settings/access-tokens/${id}/revoke`, { method: 'PATCH' }); },
+      deleteToken(id: string) { return request<{ success: boolean }>(`/api/settings/access-tokens/${id}`, { method: 'DELETE' }); },
+    },
+  },
 };

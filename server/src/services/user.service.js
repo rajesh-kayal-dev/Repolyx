@@ -27,15 +27,47 @@ export const userService = {
             avatarUrl: profile.photos?.[0]?.value || null,
             email: profile.emails?.[0]?.value || null,
             githubAccessToken: accessToken,
+            workspace: {
+              create: {
+                name: `${profile.username || "My"}'s Workspace`
+              }
+            },
+            appearance: { create: {} },
+            notifications: { create: {} },
+            aiPreference: { create: {} },
+            githubIntegration: {
+              create: {
+                githubUsername: profile.username || "",
+                avatarUrl: profile.photos?.[0]?.value || null,
+              }
+            }
           },
         });
         logger.info(`Created new user record for GitHub ID: ${profile.id}`);
       } else {
-        // Update the access token if it changed
+        // Update the access token and github integration if it changed
+        const updateData = {};
         if (accessToken && user.githubAccessToken !== accessToken) {
+          updateData.githubAccessToken = accessToken;
+          updateData.githubIntegration = {
+            upsert: {
+              create: {
+                githubUsername: profile.username || "",
+                avatarUrl: profile.photos?.[0]?.value || null,
+              },
+              update: {
+                githubUsername: profile.username || "",
+                avatarUrl: profile.photos?.[0]?.value || null,
+                lastSyncAt: new Date(),
+              }
+            }
+          };
+        }
+        
+        if (Object.keys(updateData).length > 0) {
           user = await prisma.user.update({
             where: { id: user.id },
-            data: { githubAccessToken: accessToken },
+            data: updateData,
           });
         }
       }
