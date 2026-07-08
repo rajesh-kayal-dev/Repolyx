@@ -13,6 +13,7 @@ import mcpRoutes from "./modules/mcp/routes/mcp.routes.js";
 import notificationRoutes from "./routes/notifications.routes.js";
 import activityRoutes from "./routes/activity.routes.js";
 import docsRoutes from "./routes/docs.routes.js";
+import settingsRoutes from "./routes/settings.routes.js";
 import { env } from "./config/env.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
@@ -54,6 +55,7 @@ app.use("/api/mcp", mcpRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/activity", activityRoutes);
 app.use("/api/docs", docsRoutes);
+app.use("/api/settings", settingsRoutes);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {

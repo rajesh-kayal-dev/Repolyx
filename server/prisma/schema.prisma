@@ -8,17 +8,135 @@ datasource db {
 }
 
 model User {
-  id                String          @id @default(cuid())
-  githubId          String          @unique
-  username          String
-  email             String?
-  avatarUrl         String?
-  githubAccessToken String?
-  repositories      Repository[]
-  chatSessions      ChatSession[]
-  reviewSessions    ReviewSession[]
-  debugIncidents    DebugIncident[]
-  createdAt         DateTime        @default(now())
+  id                    String                  @id @default(cuid())
+  githubId              String                  @unique
+  username              String
+  displayName           String?
+  email                 String?
+  avatarUrl             String?
+  githubAccessToken     String?
+  repositories          Repository[]
+  chatSessions          ChatSession[]
+  reviewSessions        ReviewSession[]
+  debugIncidents        DebugIncident[]
+  workspace             Workspace?
+  appearance            AppearancePreference?
+  notifications         NotificationPreference?
+  aiPreference          AIPreference?
+  githubIntegration     GithubIntegration?
+  userSessions          UserSession[]
+  accessTokens          AccessToken[]
+  auditLogs             AuditLog[]
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @default(now()) @updatedAt
+}
+
+// ─── Settings Models ──────────────────────────────────────────────────────────
+
+model Workspace {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String   @default("My Workspace")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AppearancePreference {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  theme     String   @default("Dark")
+  density   String   @default("Comfortable")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model NotificationPreference {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emailSummary      Boolean  @default(true)
+  pullRequestReview Boolean  @default(true)
+  systemStatus      Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model AIPreference {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  defaultModel       String   @default("Claude 3.5 Sonnet")
+  autoAudit          Boolean  @default(true)
+  contextTips        Boolean  @default(true)
+  backgroundIndexing Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model GithubIntegration {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  githubUsername   String?
+  organization    String?
+  avatarUrl       String?
+  installationId  String?
+  connectedAt     DateTime  @default(now())
+  lastSyncAt      DateTime?
+  repositoryCount Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model UserSession {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  device      String   @default("Unknown")
+  browser     String   @default("Unknown")
+  os          String   @default("Unknown")
+  ip          String   @default("0.0.0.0")
+  location    String   @default("Unknown")
+  isCurrent   Boolean  @default(false)
+  lastActiveAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model AccessToken {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  tokenHash   String
+  tokenPrefix String
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  revokedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([tokenHash])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action    String
+  entity    String
+  entityId  String?
+  details   Json?
+  ip        String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
 }
 
 model Repository {

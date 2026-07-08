@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Bell, Eye, Github, Shield, User, Zap, X, Loader2, Check } from 'lucide-react';
+import { useProfile, useGithubIntegration, useAppearance, useNotifications, useAIPreferences, useSecurity } from '@/lib/hooks/use-settings';
 
 interface SettingsModalProps {
     isOpen: boolean;
@@ -44,46 +45,63 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     const [isSaving, setIsSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
 
-    // Form inputs state
-    const [name, setName] = useState('Rhea Jones');
-    const [email, setEmail] = useState('rhea@repolyx.dev');
-    const [workspace, setWorkspace] = useState('Repolyx AI Lab');
-    const [theme, setTheme] = useState('Dark');
-    const [density, setDensity] = useState('Comfortable');
-    const [preferredModel, setPreferredModel] = useState('Claude 3.5');
+    // Hooks
+    const { profile, updateProfile, isLoading: profileLoading } = useProfile();
+    const { github, disconnect, isLoading: githubLoading } = useGithubIntegration();
+    const { appearance, updateAppearance, isLoading: appearanceLoading } = useAppearance();
+    const { notifications, updateNotifications, isLoading: notificationsLoading } = useNotifications();
+    const { aiPreferences, updateAIPreferences, isLoading: aiLoading } = useAIPreferences();
+    const { sessions, tokens, deleteSession, deleteAllOtherSessions, createToken, deleteToken, revokeToken, isLoading: securityLoading } = useSecurity();
 
-    // Toggles state
-    const [preferences, setPreferences] = useState({
-        emailNotifications: true,
-        prAlerts: true,
-        aiReviewNotifications: false,
-        autoAnalyzePRs: true,
-        aiSuggestions: true,
-        backgroundIndexing: false,
-    });
+    // Local Profile State (for detecting unsaved changes)
+    const [name, setName] = useState('');
+    const [workspace, setWorkspace] = useState('');
+    
+    useEffect(() => {
+        if (profile) {
+            setName(profile.displayName);
+            setWorkspace(profile.workspaceName);
+        }
+    }, [profile]);
 
-    const togglePreference = (key: keyof typeof preferences) => {
-        setPreferences((prev) => ({ ...prev, [key]: !prev[key] }));
-    };
+    const hasUnsavedChanges = useMemo(() => {
+        if (!profile) return false;
+        return name !== profile.displayName || workspace !== profile.workspaceName;
+    }, [name, workspace, profile]);
 
     useEffect(() => {
         const handler = (e: KeyboardEvent) => {
-            if (e.key === 'Escape' && !isSaving) onClose();
+            if (e.key === 'Escape' && !isSaving) {
+                if (hasUnsavedChanges) {
+                    if (window.confirm('You have unsaved changes. Are you sure you want to close?')) onClose();
+                } else {
+                    onClose();
+                }
+            }
         };
         document.addEventListener('keydown', handler);
         return () => document.removeEventListener('keydown', handler);
-    }, [onClose, isSaving]);
+    }, [onClose, isSaving, hasUnsavedChanges]);
 
-    const handleSave = () => {
-        setIsSaving(true);
-        setTimeout(() => {
+    const handleBackdropClick = () => {
+        if (isSaving) return;
+        if (hasUnsavedChanges) {
+            if (window.confirm('You have unsaved changes. Are you sure you want to close?')) onClose();
+        } else {
+            onClose();
+        }
+    };
+
+    const handleSave = async () => {
+        if (activeTab === 'profile') {
+            setIsSaving(true);
+            const success = await updateProfile({ displayName: name, workspaceName: workspace });
             setIsSaving(false);
-            setSaveSuccess(true);
-            setTimeout(() => {
-                setSaveSuccess(false);
-                onClose();
-            }, 1000);
-        }, 1200);
+            if (success) {
+                setSaveSuccess(true);
+                setTimeout(() => setSaveSuccess(false), 2000);
+            }
+        }
     };
 
     return (
@@ -94,9 +112,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                onClick={() => {
-                    if (!isSaving) onClose();
-                }}
+                onClick={handleBackdropClick}
                 className="absolute inset-0 bg-black/75 backdrop-blur-md"
             />
 
@@ -158,15 +174,22 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     <div className="flex-1 p-6 overflow-y-auto bg-transparent space-y-6">
                         {activeTab === 'profile' && (
                             <div className="space-y-5 animate-fade-in">
+                                {profileLoading ? (
+                                    <div className="flex h-32 items-center justify-center"><Loader2 className="animate-spin text-neutral-500" /></div>
+                                ) : (
                                 <div>
                                     <h3 className="text-xs font-semibold text-white tracking-wide uppercase mb-1">Profile Info</h3>
                                     <p className="text-[11px] text-neutral-500 mb-4">Update your profile details and workspace credentials.</p>
                                     
                                     <div className="space-y-4">
                                         <div className="flex items-center gap-4 p-3 rounded-lg border border-white/[0.04] bg-white/[0.01] mb-2">
-                                            <div className="h-12 w-12 rounded-full border border-white/10 bg-gradient-to-tr from-accent/20 to-accentSoft/40 flex items-center justify-center text-sm font-semibold text-white shrink-0">
-                                                RJ
-                                            </div>
+                                            {profile?.avatarUrl ? (
+                                                <img src={profile.avatarUrl} alt="Avatar" className="h-12 w-12 rounded-full border border-white/10 shrink-0 object-cover" />
+                                            ) : (
+                                                <div className="h-12 w-12 rounded-full border border-white/10 bg-gradient-to-tr from-accent/20 to-accentSoft/40 flex items-center justify-center text-sm font-semibold text-white shrink-0">
+                                                    {name?.substring(0, 2).toUpperCase() || 'U'}
+                                                </div>
+                                            )}
                                             <div>
                                                 <p className="text-sm font-medium text-white">{name}</p>
                                                 <p className="text-xs text-neutral-500">Team Administrator</p>
@@ -183,13 +206,14 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                                             />
                                         </label>
                                         
-                                        <label className="block">
+                                        <label className="block opacity-75">
                                             <span className="text-[11px] font-medium text-neutral-500 uppercase tracking-wide">Email Address</span>
                                             <input
                                                 type="email"
-                                                value={email}
-                                                onChange={(e) => setEmail(e.target.value)}
-                                                className="mt-1.5 w-full rounded-lg border border-white/[0.06] bg-white/[0.03] px-3.5 py-2 text-xs text-white outline-none placeholder:text-neutral-500 transition-colors focus:border-accent/40 focus:ring-1 focus:ring-accent/20"
+                                                value={profile?.email || 'No email provided'}
+                                                readOnly
+                                                disabled
+                                                className="mt-1.5 w-full rounded-lg border border-white/[0.06] bg-white/[0.02] px-3.5 py-2 text-xs text-neutral-400 outline-none cursor-not-allowed"
                                             />
                                         </label>
 
@@ -204,11 +228,15 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                                         </label>
                                     </div>
                                 </div>
+                                )}
                             </div>
                         )}
 
                         {activeTab === 'github' && (
                             <div className="space-y-5 animate-fade-in">
+                                {githubLoading ? (
+                                    <div className="flex h-32 items-center justify-center"><Loader2 className="animate-spin text-neutral-500" /></div>
+                                ) : (
                                 <div>
                                     <h3 className="text-xs font-semibold text-white tracking-wide uppercase mb-1">GitHub Integration</h3>
                                     <p className="text-[11px] text-neutral-500 mb-4">Manage access controls and webhook configurations for GitHub.</p>
@@ -216,41 +244,52 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                                     <div className="rounded-xl border border-white/[0.06] bg-white/[0.01] p-4 space-y-4">
                                         <div className="flex items-start justify-between">
                                             <div className="flex gap-3">
-                                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-neutral-900 border border-white/5 text-white">
-                                                    <Github size={20} />
+                                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-neutral-900 border border-white/5 text-white overflow-hidden">
+                                                    {github?.avatarUrl ? <img src={github.avatarUrl} alt="org" className="w-full h-full object-cover" /> : <Github size={20} />}
                                                 </div>
                                                 <div>
-                                                    <p className="text-xs font-semibold text-white">repolyx-org / repolyx</p>
-                                                    <p className="text-[11px] text-neutral-500 mt-0.5">Linked organization workspace</p>
-                                                    <p className="text-[10px] text-neutral-600 mt-1">Authorized via repolyx-bot &bull; sync active</p>
+                                                    <p className="text-xs font-semibold text-white">{github?.organization !== 'N/A' ? github?.organization : github?.githubUsername}</p>
+                                                    <p className="text-[11px] text-neutral-500 mt-0.5">Linked workspace</p>
+                                                    <p className="text-[10px] text-neutral-600 mt-1">Authorized via OAuth &bull; {github?.repositoryCount || 0} repos</p>
                                                 </div>
                                             </div>
-                                            <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-400/10 border border-emerald-400/15 px-2 py-0.5 rounded-full shrink-0">
-                                                Connected
-                                            </span>
+                                            {github?.connected ? (
+                                                <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-400/10 border border-emerald-400/15 px-2 py-0.5 rounded-full shrink-0">Connected</span>
+                                            ) : (
+                                                <span className="text-[10px] font-semibold text-neutral-400 bg-neutral-400/10 border border-neutral-400/15 px-2 py-0.5 rounded-full shrink-0">Disconnected</span>
+                                            )}
                                         </div>
                                     </div>
 
                                     <div className="mt-4 flex gap-2">
                                         <button
                                             type="button"
+                                            onClick={() => window.open('https://github.com/settings/applications', '_blank')}
                                             className="rounded-lg border border-white/[0.06] bg-white/[0.03] px-3.5 py-2 text-xs text-neutral-300 hover:bg-white/[0.06] hover:text-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                                         >
                                             Configure repositories
                                         </button>
                                         <button
                                             type="button"
-                                            className="rounded-lg border border-red-500/10 bg-red-500/5 px-3.5 py-2 text-xs text-red-400 hover:bg-red-500/10 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30"
+                                            onClick={() => {
+                                                if(window.confirm('Are you sure you want to disconnect your GitHub account? This will prevent syncing.')) disconnect();
+                                            }}
+                                            disabled={!github?.connected}
+                                            className="rounded-lg border border-red-500/10 bg-red-500/5 px-3.5 py-2 text-xs text-red-400 hover:bg-red-500/10 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30 disabled:opacity-50"
                                         >
                                             Disconnect Integration
                                         </button>
                                     </div>
                                 </div>
+                                )}
                             </div>
                         )}
 
                         {activeTab === 'appearance' && (
                             <div className="space-y-5 animate-fade-in">
+                                {appearanceLoading ? (
+                                    <div className="flex h-32 items-center justify-center"><Loader2 className="animate-spin text-neutral-500" /></div>
+                                ) : (
                                 <div>
                                     <h3 className="text-xs font-semibold text-white tracking-wide uppercase mb-1">Appearance</h3>
                                     <p className="text-[11px] text-neutral-500 mb-4">Tailor the user interface layout and color preferences.</p>
@@ -259,45 +298,49 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                                         <label className="block">
                                             <span className="text-[11px] font-medium text-neutral-500 uppercase tracking-wide">Theme Mode</span>
                                             <select 
-                                                value={theme}
-                                                onChange={(e) => setTheme(e.target.value)}
+                                                value={appearance?.theme || 'Dark'}
+                                                onChange={(e) => updateAppearance({ ...appearance!, theme: e.target.value as any })}
                                                 className="mt-1.5 w-full rounded-lg border border-white/[0.06] bg-[#080b11] px-3 py-2 text-xs text-white outline-none cursor-pointer hover:border-white/10 transition-colors focus:border-accent/40 focus:ring-1 focus:ring-accent/20"
                                             >
-                                                <option>Dark</option>
-                                                <option>Light</option>
-                                                <option>Midnight Special</option>
-                                                <option>System Default</option>
+                                                <option value="Dark">Dark</option>
+                                                <option value="Light">Light</option>
+                                                <option value="Midnight Special">Midnight Special</option>
+                                                <option value="System Default">System Default</option>
                                             </select>
                                         </label>
                                         
                                         <label className="block">
                                             <span className="text-[11px] font-medium text-neutral-500 uppercase tracking-wide">UI Spacing Density</span>
                                             <select 
-                                                value={density}
-                                                onChange={(e) => setDensity(e.target.value)}
+                                                value={appearance?.density || 'Comfortable'}
+                                                onChange={(e) => updateAppearance({ ...appearance!, density: e.target.value as any })}
                                                 className="mt-1.5 w-full rounded-lg border border-white/[0.06] bg-[#080b11] px-3 py-2 text-xs text-white outline-none cursor-pointer hover:border-white/10 transition-colors focus:border-accent/40 focus:ring-1 focus:ring-accent/20"
                                             >
-                                                <option>Comfortable</option>
-                                                <option>Compact</option>
-                                                <option>Spacious</option>
+                                                <option value="Comfortable">Comfortable</option>
+                                                <option value="Compact">Compact</option>
+                                                <option value="Spacious">Spacious</option>
                                             </select>
                                         </label>
                                     </div>
                                 </div>
+                                )}
                             </div>
                         )}
 
                         {activeTab === 'notifications' && (
                             <div className="space-y-5 animate-fade-in">
+                                {notificationsLoading ? (
+                                    <div className="flex h-32 items-center justify-center"><Loader2 className="animate-spin text-neutral-500" /></div>
+                                ) : (
                                 <div>
                                     <h3 className="text-xs font-semibold text-white tracking-wide uppercase mb-1">Notifications</h3>
                                     <p className="text-[11px] text-neutral-500 mb-4">Toggle alert rules and newsletter delivery settings.</p>
                                     
                                     <div className="space-y-2">
                                         {[
-                                            { key: 'emailNotifications', label: 'Email summaries', desc: 'Periodic review reports and activity digests' },
-                                            { key: 'prAlerts', label: 'Pull request reviews', desc: 'Real-time alert when a review is compiled' },
-                                            { key: 'aiReviewNotifications', label: 'System status updates', desc: 'Platform announcements and beta logs' },
+                                            { key: 'emailSummary', label: 'Email summaries', desc: 'Periodic review reports and activity digests' },
+                                            { key: 'pullRequestReview', label: 'Pull request reviews', desc: 'Real-time alert when a review is compiled' },
+                                            { key: 'systemStatus', label: 'System status updates', desc: 'Platform announcements and beta logs' },
                                         ].map((item) => (
                                             <div key={item.key} className="flex items-center justify-between rounded-xl border border-white/[0.04] bg-white/[0.01] p-3.5">
                                                 <div className="space-y-0.5">
@@ -305,18 +348,22 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                                                     <p className="text-[10px] text-neutral-500">{item.desc}</p>
                                                 </div>
                                                 <Toggle 
-                                                    enabled={preferences[item.key as keyof typeof preferences]} 
-                                                    onChange={() => togglePreference(item.key as keyof typeof preferences)} 
+                                                    enabled={notifications?.[item.key as keyof typeof notifications] ?? false} 
+                                                    onChange={() => updateNotifications({ ...notifications!, [item.key]: !notifications?.[item.key as keyof typeof notifications] })} 
                                                 />
                                             </div>
                                         ))}
                                     </div>
                                 </div>
+                                )}
                             </div>
                         )}
 
                         {activeTab === 'ai' && (
                             <div className="space-y-5 animate-fade-in">
+                                {aiLoading ? (
+                                    <div className="flex h-32 items-center justify-center"><Loader2 className="animate-spin text-neutral-500" /></div>
+                                ) : (
                                 <div>
                                     <h3 className="text-xs font-semibold text-white tracking-wide uppercase mb-1">AI Preferences</h3>
                                     <p className="text-[11px] text-neutral-500 mb-4">Calibrate analysis models and background auditing preferences.</p>
@@ -325,21 +372,22 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                                         <label className="block">
                                             <span className="text-[11px] font-medium text-neutral-500 uppercase tracking-wide">Default Intelligence Model</span>
                                             <select 
-                                                value={preferredModel}
-                                                onChange={(e) => setPreferredModel(e.target.value)}
+                                                value={aiPreferences?.defaultModel || 'Claude 3.5 Sonnet'}
+                                                onChange={(e) => updateAIPreferences({ ...aiPreferences!, defaultModel: e.target.value })}
                                                 className="mt-1.5 w-full rounded-lg border border-white/[0.06] bg-[#080b11] px-3 py-2 text-xs text-white outline-none cursor-pointer hover:border-white/10 transition-colors focus:border-accent/40 focus:ring-1 focus:ring-accent/20"
                                             >
-                                                <option>Claude 3.5 Sonnet</option>
-                                                <option>GPT-4o (Standard)</option>
-                                                <option>Gemini 1.5 Pro</option>
-                                                <option>DeepSeek R1 (Experimental)</option>
+                                                <option value="Claude 3.5 Sonnet">Claude 3.5 Sonnet</option>
+                                                <option value="GPT-5">GPT-5</option>
+                                                <option value="Gemini 2.5 Pro">Gemini 2.5 Pro</option>
+                                                <option value="DeepSeek">DeepSeek</option>
+                                                <option value="Mistral">Mistral</option>
                                             </select>
                                         </label>
 
                                         <div className="space-y-2">
                                             {[
-                                                { key: 'autoAnalyzePRs', label: 'Automated PR audit', desc: 'Trigger agent reviews immediately on sync' },
-                                                { key: 'aiSuggestions', label: 'Contextual code tips', desc: 'Inject subtle autocomplete suggestions inside review feed' },
+                                                { key: 'autoAudit', label: 'Automated PR audit', desc: 'Trigger agent reviews immediately on sync' },
+                                                { key: 'contextTips', label: 'Contextual code tips', desc: 'Inject subtle autocomplete suggestions inside review feed' },
                                                 { key: 'backgroundIndexing', label: 'Vector background indexing', desc: 'Index codebase dependencies during off-hours' },
                                             ].map((item) => (
                                                 <div key={item.key} className="flex items-center justify-between rounded-xl border border-white/[0.04] bg-white/[0.01] p-3.5">
@@ -348,51 +396,66 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                                                         <p className="text-[10px] text-neutral-500">{item.desc}</p>
                                                     </div>
                                                     <Toggle 
-                                                        enabled={preferences[item.key as keyof typeof preferences]} 
-                                                        onChange={() => togglePreference(item.key as keyof typeof preferences)} 
+                                                        enabled={!!aiPreferences?.[item.key as keyof typeof aiPreferences]} 
+                                                        onChange={() => updateAIPreferences({ ...aiPreferences!, [item.key]: !aiPreferences?.[item.key as keyof typeof aiPreferences] })} 
                                                     />
                                                 </div>
                                             ))}
                                         </div>
                                     </div>
                                 </div>
+                                )}
                             </div>
                         )}
 
                         {activeTab === 'security' && (
                             <div className="space-y-5 animate-fade-in">
+                                {securityLoading ? (
+                                    <div className="flex h-32 items-center justify-center"><Loader2 className="animate-spin text-neutral-500" /></div>
+                                ) : (
                                 <div>
                                     <h3 className="text-xs font-semibold text-white tracking-wide uppercase mb-1">Security & Sessions</h3>
                                     <p className="text-[11px] text-neutral-500 mb-4">View active authentication sessions and access tokens.</p>
                                     
                                     <div className="space-y-3">
                                         <div className="rounded-xl border border-white/[0.04] bg-[#0e121a]/30 p-3.5 space-y-2">
-                                            <div className="flex items-center justify-between border-b border-white/5 pb-2">
-                                                <div>
-                                                    <p className="text-xs font-semibold text-white">Desktop Windows Client</p>
-                                                    <p className="text-[10px] text-neutral-500">Chrome &bull; Hyderabad, India &bull; 103.20.14.3</p>
+                                            {sessions?.map((session) => (
+                                                <div key={session.id} className="flex items-center justify-between border-b border-white/5 pb-2 last:border-0 last:pb-0 pt-2 first:pt-0">
+                                                    <div>
+                                                        <p className="text-xs font-semibold text-white">{session.os} Client</p>
+                                                        <p className="text-[10px] text-neutral-500">{session.browser} &bull; {session.location} &bull; {session.ip}</p>
+                                                    </div>
+                                                    {session.isCurrent ? (
+                                                        <span className="text-[9px] font-bold text-accent bg-accent/10 border border-accent/15 px-1.5 py-0.5 rounded uppercase">Current Session</span>
+                                                    ) : (
+                                                        <button type="button" onClick={() => deleteSession(session.id)} className="text-[10px] text-red-400 hover:text-red-300">Sign Out</button>
+                                                    )}
                                                 </div>
-                                                <span className="text-[9px] font-bold text-accent bg-accent/10 border border-accent/15 px-1.5 py-0.5 rounded uppercase">
-                                                    Current Session
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center justify-between pt-1">
-                                                <div>
-                                                    <p className="text-xs font-semibold text-neutral-300">iPhone 15 Client</p>
-                                                    <p className="text-[10px] text-neutral-500">Safari &bull; Active 2 hours ago</p>
-                                                </div>
-                                            </div>
+                                            ))}
+                                            {!sessions?.length && (
+                                                <p className="text-xs text-neutral-500">No active sessions found.</p>
+                                            )}
                                         </div>
 
                                         <div className="flex gap-2">
                                             <button
                                                 type="button"
+                                                onClick={() => deleteAllOtherSessions()}
                                                 className="rounded-lg border border-white/[0.06] bg-white/[0.03] px-3.5 py-2 text-xs text-neutral-300 hover:bg-white/[0.06] hover:text-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                                             >
                                                 Sign out of all other sessions
                                             </button>
                                             <button
                                                 type="button"
+                                                onClick={async () => {
+                                                    const tokenName = window.prompt('Enter a name for the new access token:');
+                                                    if (tokenName) {
+                                                        const token = await createToken(tokenName);
+                                                        if (token) {
+                                                            window.prompt('Copy your token now. You will not be able to see it again.', token);
+                                                        }
+                                                    }
+                                                }}
                                                 className="rounded-lg border border-white/[0.06] bg-white/[0.03] px-3.5 py-2 text-xs text-neutral-300 hover:bg-white/[0.06] hover:text-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                                             >
                                                 Manage access tokens
@@ -400,6 +463,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                                         </div>
                                     </div>
                                 </div>
+                                )}
                             </div>
                         )}
                     </div>
@@ -409,7 +473,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 <div className="flex items-center justify-end gap-2.5 px-6 py-4 border-t border-white/5 bg-[#0a0d13] shrink-0">
                     <button
                         type="button"
-                        onClick={onClose}
+                        onClick={handleBackdropClick}
                         disabled={isSaving}
                         className="rounded-lg border border-white/[0.08] bg-white/[0.02] px-4 py-2 text-xs text-neutral-400 hover:bg-white/[0.06] hover:text-neutral-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 disabled:opacity-50"
                     >
@@ -419,8 +483,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     <button
                         type="button"
                         onClick={handleSave}
-                        disabled={isSaving || saveSuccess}
-                        className="relative rounded-lg bg-accent text-neutral-900 font-semibold px-4.5 py-2 text-xs hover:bg-accent/90 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 disabled:opacity-85 shadow-[0_0_20px_rgba(56,189,248,0.2)] flex items-center justify-center min-w-[110px]"
+                        disabled={isSaving || saveSuccess || activeTab !== 'profile' || !hasUnsavedChanges}
+                        className="relative rounded-lg bg-accent text-neutral-900 font-semibold px-4.5 py-2 text-xs hover:bg-accent/90 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(56,189,248,0.2)] flex items-center justify-center min-w-[110px]"
                     >
                         {isSaving ? (
                             <span className="flex items-center gap-1.5">
